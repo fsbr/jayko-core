@@ -1,0 +1,185 @@
+# we are calling the language jayko right now. but we can change that later.
+from enum import Enum, auto
+import subprocess
+
+class TokenType(Enum):
+    LET = auto()
+    SAY = auto()
+    IDENTIFIER = auto()
+    ASSIGN = auto()
+    NUMBER = auto()
+    DOUBLE_QUOTE = auto()
+
+class NodeType(Enum):
+    VARIABLE_DECLARATION = auto()
+    IDENTIFIER = auto()
+    NUMBER_LITERAL = auto()
+    STRING_LITERAL = auto()
+    SAY = auto()
+
+class ASTNode():
+    def __init__(self):
+        self.node_type = None
+        self.node_data = None
+        self.children = []
+
+class Jayko:
+    def __init__(self):
+        self.reserved_keywords = {"let", "say"}
+        self.root = []                              # root of the AST
+        self.big_string = ""                        # where all the code for gcc is going to end up
+        pass
+    def read_source_code(self):
+        self.f = open("hello.jko", "r")
+        for line in self.f.readlines():
+            print(line.strip("\n"))
+            self.tokenize(line)
+
+    def tokenize(self, line):
+        print("tokenizing -> ", line)
+        tokens = line.split()
+        print("split line ->", tokens)
+        self.token_list = []
+        for token in tokens:
+            if token == "let":
+                self.token_list.append( (TokenType.LET,) )
+            elif token == ":=":
+                self.token_list.append( (TokenType.ASSIGN,) )
+            elif token == "say":
+                self.token_list.append( (TokenType.SAY,) )
+            elif token.isdigit():
+                self.token_list.append( (TokenType.NUMBER, int(token) ) ) 
+            else:
+                # for now we just assume anything not this is an identifier
+                if token not in self.reserved_keywords:
+                    self.token_list.append( (TokenType.IDENTIFIER, token) )
+
+        print(self.token_list)
+        print("TOKENIZING COMPLETE\n")
+        self.build_ast()
+
+    def build_ast(self):
+        # this problem just feels more complicated
+        # need to differentiate between statements, expressions, and terms (precedence levels)
+        # lets get the absolute simplest top down working 
+        print("BEGIN PARSING\n")
+        cursor = 0
+        while cursor < len(self.token_list):
+            if self.token_list[cursor][0] == TokenType.LET:
+                node_to_add = ASTNode()
+                node_to_add.node_type = NodeType.VARIABLE_DECLARATION
+                # then we know we need to see an identifier token next 
+                cursor += 1
+
+                if self.token_list[cursor][0] == TokenType.IDENTIFIER: 
+                    id_node_to_add = ASTNode()
+                    id_node_to_add.node_type = NodeType.IDENTIFIER
+                    id_node_to_add.node_data = self.token_list[cursor][1]
+                    node_to_add.children.append( id_node_to_add )
+                    cursor+=1
+                else:
+                    print("SyntaxError: Expected an IDENTIFIER token")
+                    quit()
+
+                if self.token_list[cursor][0] == TokenType.ASSIGN:
+                    cursor+=1
+                else:
+                    print("SyntaxError: Expected an ASSIGN token")
+                # after this we need to add the 
+                if self.token_list[cursor][0] == TokenType.NUMBER:
+                    num_node_to_add = ASTNode()
+                    num_node_to_add.node_type = NodeType.NUMBER_LITERAL
+                    num_node_to_add.node_data = self.token_list[cursor][1]
+                    node_to_add.children.append( num_node_to_add )
+                    cursor+=1
+                else:
+                    print("SyntaxError: Expected a NUMBER token")
+                    quit()
+
+            if cursor>=len(self.token_list): break  # HACK FIX LATER IM JUST REALLY EXCITED
+
+            print(self.token_list)
+            print("cursor ", cursor)
+            if self.token_list[cursor][0] == TokenType.SAY:
+                node_to_add = ASTNode()
+                node_to_add.node_type = NodeType.SAY
+                # then we know we need to see an identifier token next
+                cursor+=1
+                if self.token_list[cursor][0] == TokenType.IDENTIFIER:
+                    id_node_to_add = ASTNode()
+                    id_node_to_add.node_type = NodeType.IDENTIFIER
+                    id_node_to_add.node_data = self.token_list[cursor][1]
+                    node_to_add.children.append( id_node_to_add )
+                    cursor+=1
+                else:
+                    print("SyntaxError: Expected an IDENTIFIER token")
+                    quit()
+
+            cursor += 1 
+        print(node_to_add.node_type, node_to_add.children)      
+        # FIX LATER, like make it more "modular or wahtever"
+        self.root.append(node_to_add)
+        print("DONE PARSING") 
+        #for item in self.root:
+        #    print("WENT BACK HERE")
+        #    self.big_string += self.generate_big_string(item)
+
+    def generate_output(self):
+        for item in self.root:
+            self.big_string+= self.generate_big_string(item)
+        self.generate_output_file()
+
+    def generate_big_string(self, node):
+        # we only want it to work for a VARIABLE_DECLARATION node right now
+        # this is called post-order traversal of the tree
+
+        small_string = "\t" + self.traversal(node) + "\n" 
+        print("small string -> ", small_string)
+        return small_string
+
+    def traversal(self,node):
+        print("PROCESSING NODE OF TYPE " , node.node_type)
+        if node.node_type == None:
+            print("Encountered NoneType Node, exiting") 
+            quit()
+
+        if node.node_type == NodeType.VARIABLE_DECLARATION:
+            var_name = self.traversal(node.children[0])   # Identifier
+            value = self.traversal(node.children[1])      # Expression
+            return f"int {var_name} = {value};"
+
+        if node.node_type == NodeType.IDENTIFIER:
+            return str(node.node_data)
+
+        if node.node_type == NodeType.NUMBER_LITERAL:
+            return str(node.node_data)
+        
+        if node.node_type == NodeType.SAY:
+            var_name = self.traversal(node.children[0])    # Identifier
+            return f"printf(\"%d\\n\", {var_name} );"
+    
+        for child in node.children:
+            self.traversal(child) 
+
+        print(node.node_data)
+
+    def generate_output_file(self):
+        self.output = open("output.c","w")
+
+        self.output.write("#include<stdio.h>\n")
+        self.output.write("int main(){\n")
+        self.output.write(self.big_string+"\n")
+        self.output.write("\t" + "return 0;\n")
+        self.output.write("}\n")
+
+
+        self.output.close()
+
+if __name__ == "__main__":
+    subprocess.run(["rm", "output.c"])
+    j = Jayko() 
+    j.read_source_code()
+    j.generate_output()
+
+    subprocess.run(["gcc", "-o", "output", "output.c"])
+    subprocess.run(["./output"])

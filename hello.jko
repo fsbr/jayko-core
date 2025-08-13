@@ -1,0 +1,9 @@
+let  x := 80 
+say x 
+let y := 99 
+say y  
+say x
+let z := 68
+say z
+say z
+say z
