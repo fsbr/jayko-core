@@ -9,6 +9,22 @@ class TokenType(Enum):
     ASSIGN = auto()
     NUMBER = auto()
     DOUBLE_QUOTE = auto()
+    ADD = auto()
+    MUL = auto()
+    SEMICOLON = auto()
+
+class LBP(Enum):
+    # LBP = left binding power.  it determines the binding sensitivity of each token
+    # for Pratt's Parsing method
+    LET = 0
+    SAY = 0
+    IDENTIFIER = 0
+    ASSIGN = 0
+    NUMBER = 0
+    DOUBLE_QUOTE = 0 
+    ADD = 2 
+    MUL = 3 
+    
 
 class NodeType(Enum):
     VARIABLE_DECLARATION = auto()
@@ -16,6 +32,7 @@ class NodeType(Enum):
     NUMBER_LITERAL = auto()
     STRING_LITERAL = auto()
     SAY = auto()
+    BINOP = auto()
 
 class ASTNode():
     def __init__(self):
@@ -26,37 +43,102 @@ class ASTNode():
 class Jayko:
     def __init__(self):
         self.reserved_keywords = {"let", "say"}
+
+        self.token_list = []
         self.root = []                              # root of the AST
         self.big_string = ""                        # where all the code for gcc is going to end up
-        pass
+        
     def read_source_code(self):
         self.f = open("hello.jko", "r")
         for line in self.f.readlines():
-            print(line.strip("\n"))
-            self.tokenize(line)
+            # print(line.strip("\n"))
+            self.tokenize2(line.strip("\n"))
 
-    def tokenize(self, line):
-        print("tokenizing -> ", line)
-        tokens = line.split()
-        print("split line ->", tokens)
-        self.token_list = []
-        for token in tokens:
-            if token == "let":
-                self.token_list.append( (TokenType.LET,) )
-            elif token == ":=":
-                self.token_list.append( (TokenType.ASSIGN,) )
-            elif token == "say":
-                self.token_list.append( (TokenType.SAY,) )
-            elif token.isdigit():
-                self.token_list.append( (TokenType.NUMBER, int(token) ) ) 
-            else:
-                # for now we just assume anything not this is an identifier
-                if token not in self.reserved_keywords:
-                    self.token_list.append( (TokenType.IDENTIFIER, token) )
+    #def tokenize(self, line):
+    #    print("tokenizing -> ", line)
+    #    tokens = line.split()
+    #    print("split line ->", tokens)
+    #    # self.token_list = []
+    #    for token in tokens:
+    #        if token == "let":
+    #            self.token_list.append( (TokenType.LET,) )
+    #        elif token == ":=":
+    #            self.token_list.append( (TokenType.ASSIGN,) )
+    #        elif token == "say":
+    #            self.token_list.append( (TokenType.SAY,) )
+    #        elif token == ";":
+    #            self.token_list.append( (TokenType.SEMICOLON,) )
+    #        elif token.isdigit():
+    #            self.token_list.append( (TokenType.NUMBER, int(token) ) ) 
+    #        else:
+    #            # for now we just assume anything not this is an identifier
+    #            if token not in self.reserved_keywords:
+    #                self.token_list.append( (TokenType.IDENTIFIER, token) )
 
+    #    print(self.token_list)
+    #    print("TOKENIZING COMPLETE\n")
+
+    #    # self.build_ast()
+    def tokenize2(self,line):
+        # right now the tokenizer doesnt support multiple character lookahead,
+        # so operators and identifiers need to be separated by a space.
+        print("BEGIN TOKENIZING")
+        print(line)
+        self.candidate_tokens = []
+        candidate_token = ""
+        for i,char in enumerate(line):
+            # dealing with spaces
+            if char == " ":
+                continue
+            # peek
+            try: next_char = line[i+1]
+            except IndexError: next_char = None
+            
+            candidate_token += char
+            if next_char == " ":
+                # this is the end of a token manually inputted by me
+                print("check what token it is SPACE CASE") 
+                print(candidate_token)
+                self.candidate_tokens.append(candidate_token)
+                candidate_token = ""
+                continue
+            elif next_char == ";":
+                # the stuff we have now must be the end of a token, because ; is the end of a line
+                print("check what token it is SEMICOLON CASE")
+                self.candidate_tokens.append(candidate_token)
+                candidate_token = ""
+                continue
+            elif next_char == None:
+                print("should just be appending a semicolon here")
+                self.candidate_tokens.append(candidate_token)
+                
+        print("TOKEN LIST")
+        print(self.candidate_tokens)
+        for t in self.candidate_tokens:
+            self.token_dispatch(t)
+
+        print("FINAL TOKEN STREAM")
         print(self.token_list)
-        print("TOKENIZING COMPLETE\n")
-        self.build_ast()
+
+    def token_dispatch(self, token):
+        if token == "let":
+            self.token_list.append( (TokenType.LET,) )
+        elif token == ":=":
+            self.token_list.append( (TokenType.ASSIGN,) )
+        elif token == "say":
+            self.token_list.append( (TokenType.SAY,) )
+        elif token == ";":
+            self.token_list.append( (TokenType.SEMICOLON,) )
+        elif token.isdigit():
+            self.token_list.append( (TokenType.NUMBER, int(token) ) ) 
+        else:
+            # for now we just assume anything not this is an identifier
+            if token not in self.reserved_keywords:
+                self.token_list.append( (TokenType.IDENTIFIER, token) )
+           
+
+    def expr(limit = 0):
+        pass
 
     def build_ast(self):
         # this problem just feels more complicated
@@ -177,9 +259,10 @@ class Jayko:
 
 if __name__ == "__main__":
     subprocess.run(["rm", "output.c"])
+
     j = Jayko() 
     j.read_source_code()
-    j.generate_output()
+    # j.generate_output()
 
-    subprocess.run(["gcc", "-o", "output", "output.c"])
-    subprocess.run(["./output"])
+    #subprocess.run(["gcc", "-o", "output", "output.c"])
+    #subprocess.run(["./output"])
