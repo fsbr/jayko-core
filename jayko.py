@@ -25,7 +25,7 @@ class LBP(Enum):
     ADD = 2 
     MUL = 3 
     
-
+# i think we dont use these types of nodes, because different nodes interact with rbp differently.
 class NodeType(Enum):
     VARIABLE_DECLARATION = auto()
     IDENTIFIER = auto()
@@ -38,15 +38,38 @@ class ASTNode():
     def __init__(self):
         self.node_type = None
         self.node_data = None
+        self.lbp
         self.children = []
+
+    def nud(self):
+        pass
+    def led(self):
+        pass
 
 class Jayko:
     def __init__(self):
         self.reserved_keywords = {"let", "say"}
 
-        self.token_list = []
+        self.token_list = []                        # 
+        self.statements = []
         self.root = []                              # root of the AST
         self.big_string = ""                        # where all the code for gcc is going to end up
+
+
+        self.cursor = 0                             # for moving around token list
+
+    def peek(self, offset=0):
+        return self.token_list[self.cursor + offset]
+
+    def advance(self):
+        value = self.token_list[self.cursor]
+        self.cursor += 1
+        return value
+
+    def expect(self, tokentype):
+        t = self.advance()
+        if t[0] != tokentype:
+            raise SyntaxError(f"expected {tokentype}, got {t[0]}")
         
     def read_source_code(self):
         self.f = open("hello.jko", "r")
@@ -129,6 +152,10 @@ class Jayko:
             self.token_list.append( (TokenType.SAY,) )
         elif token == ";":
             self.token_list.append( (TokenType.SEMICOLON,) )
+        elif token == "+":
+            self.token_list.append( (TokenType.ADD,) )
+        elif token == "*":
+            self.token_list.append( (TokenType.MUL,) )
         elif token.isdigit():
             self.token_list.append( (TokenType.NUMBER, int(token) ) ) 
         else:
@@ -137,74 +164,106 @@ class Jayko:
                 self.token_list.append( (TokenType.IDENTIFIER, token) )
            
 
-    def expr(limit = 0):
-        pass
+    def expr(rbp= 0):
+        t = self.advance()
+        left = t.nud(self)
 
-    def build_ast(self):
-        # this problem just feels more complicated
-        # need to differentiate between statements, expressions, and terms (precedence levels)
-        # lets get the absolute simplest top down working 
-        print("BEGIN PARSING\n")
-        cursor = 0
-        while cursor < len(self.token_list):
-            if self.token_list[cursor][0] == TokenType.LET:
-                node_to_add = ASTNode()
-                node_to_add.node_type = NodeType.VARIABLE_DECLARATION
-                # then we know we need to see an identifier token next 
-                cursor += 1
+    def pratt(self):
+        # lets just see if we can produce a list of objects that each token should be
+        # Inputs: self.token_list
+        # Outputs: self.ast_nodes
+        # lets get a list of statements for now
 
-                if self.token_list[cursor][0] == TokenType.IDENTIFIER: 
-                    id_node_to_add = ASTNode()
-                    id_node_to_add.node_type = NodeType.IDENTIFIER
-                    id_node_to_add.node_data = self.token_list[cursor][1]
-                    node_to_add.children.append( id_node_to_add )
-                    cursor+=1
-                else:
-                    print("SyntaxError: Expected an IDENTIFIER token")
-                    quit()
+         
+        # look at the first token
+        current_token = self.token_list[self.cursor]
+        print(current_token)
+        if current_token[0] == TokenType.LET:
+            self.root.append( self.parse_let() )
 
-                if self.token_list[cursor][0] == TokenType.ASSIGN:
-                    cursor+=1
-                else:
-                    print("SyntaxError: Expected an ASSIGN token")
-                # after this we need to add the 
-                if self.token_list[cursor][0] == TokenType.NUMBER:
-                    num_node_to_add = ASTNode()
-                    num_node_to_add.node_type = NodeType.NUMBER_LITERAL
-                    num_node_to_add.node_data = self.token_list[cursor][1]
-                    node_to_add.children.append( num_node_to_add )
-                    cursor+=1
-                else:
-                    print("SyntaxError: Expected a NUMBER token")
-                    quit()
+    def parse_let(self):
+        self.expect(TokenType.LET)
+        ident = self.expect(TokenType.IDENTIFIER)
+        self.expect(TokenType.ASSIGN)
+        value = 42 #expr()      # here is where pratt logic would take place
 
-            if cursor>=len(self.token_list): break  # HACK FIX LATER IM JUST REALLY EXCITED
+        self.advance()
+        self.expect(TokenType.SEMICOLON)
 
-            print(self.token_list)
-            print("cursor ", cursor)
-            if self.token_list[cursor][0] == TokenType.SAY:
-                node_to_add = ASTNode()
-                node_to_add.node_type = NodeType.SAY
-                # then we know we need to see an identifier token next
-                cursor+=1
-                if self.token_list[cursor][0] == TokenType.IDENTIFIER:
-                    id_node_to_add = ASTNode()
-                    id_node_to_add.node_type = NodeType.IDENTIFIER
-                    id_node_to_add.node_data = self.token_list[cursor][1]
-                    node_to_add.children.append( id_node_to_add )
-                    cursor+=1
-                else:
-                    print("SyntaxError: Expected an IDENTIFIER token")
-                    quit()
+        identifier_node = ASTNode()
+        identifier_node.type = NodeType.IDENTIFIER
+        identifier_node.data = ident
 
-            cursor += 1 
-        print(node_to_add.node_type, node_to_add.children)      
-        # FIX LATER, like make it more "modular or wahtever"
-        self.root.append(node_to_add)
-        print("DONE PARSING") 
-        #for item in self.root:
-        #    print("WENT BACK HERE")
-        #    self.big_string += self.generate_big_string(item)
+        variable_declaration_node = ASTNode() 
+        variable_declaration_node.node_type = NodeType.VARIABLE_DECLARATION
+        variable_declaration_node.children.append(identifier_node)
+        return variable_declaration_node
+
+    #def build_ast(self):
+    #    # this problem just feels more complicated
+    #    # need to differentiate between statements, expressions, and terms (precedence levels)
+    #    # lets get the absolute simplest top down working 
+    #    print("BEGIN PARSING\n")
+    #    cursor = 0
+    #    while cursor < len(self.token_list):
+    #        if self.token_list[cursor][0] == TokenType.LET:
+    #            node_to_add = ASTNode()
+    #            node_to_add.node_type = NodeType.VARIABLE_DECLARATION
+    #            # then we know we need to see an identifier token next 
+    #            cursor += 1
+
+    #            if self.token_list[cursor][0] == TokenType.IDENTIFIER: 
+    #                id_node_to_add = ASTNode()
+    #                id_node_to_add.node_type = NodeType.IDENTIFIER
+    #                id_node_to_add.node_data = self.token_list[cursor][1]
+    #                node_to_add.children.append( id_node_to_add )
+    #                cursor+=1
+    #            else:
+    #                print("SyntaxError: Expected an IDENTIFIER token")
+    #                quit()
+
+    #            if self.token_list[cursor][0] == TokenType.ASSIGN:
+    #                cursor+=1
+    #            else:
+    #                print("SyntaxError: Expected an ASSIGN token")
+    #            # after this we need to add the 
+    #            if self.token_list[cursor][0] == TokenType.NUMBER:
+    #                num_node_to_add = ASTNode()
+    #                num_node_to_add.node_type = NodeType.NUMBER_LITERAL
+    #                num_node_to_add.node_data = self.token_list[cursor][1]
+    #                node_to_add.children.append( num_node_to_add )
+    #                cursor+=1
+    #            else:
+    #                print("SyntaxError: Expected a NUMBER token")
+    #                quit()
+
+    #        if cursor>=len(self.token_list): break  # HACK FIX LATER IM JUST REALLY EXCITED
+
+    #        print(self.token_list)
+    #        print("cursor ", cursor)
+    #        if self.token_list[cursor][0] == TokenType.SAY:
+    #            node_to_add = ASTNode()
+    #            node_to_add.node_type = NodeType.SAY
+    #            # then we know we need to see an identifier token next
+    #            cursor+=1
+    #            if self.token_list[cursor][0] == TokenType.IDENTIFIER:
+    #                id_node_to_add = ASTNode()
+    #                id_node_to_add.node_type = NodeType.IDENTIFIER
+    #                id_node_to_add.node_data = self.token_list[cursor][1]
+    #                node_to_add.children.append( id_node_to_add )
+    #                cursor+=1
+    #            else:
+    #                print("SyntaxError: Expected an IDENTIFIER token")
+    #                quit()
+
+    #        cursor += 1 
+    #    print(node_to_add.node_type, node_to_add.children)      
+    #    # FIX LATER, like make it more "modular or wahtever"
+    #    self.root.append(node_to_add)
+    #    print("DONE PARSING") 
+    #    #for item in self.root:
+    #    #    print("WENT BACK HERE")
+    #    #    self.big_string += self.generate_big_string(item)
 
     def generate_output(self):
         for item in self.root:
@@ -262,6 +321,7 @@ if __name__ == "__main__":
 
     j = Jayko() 
     j.read_source_code()
+    j.pratt()
     # j.generate_output()
 
     #subprocess.run(["gcc", "-o", "output", "output.c"])
