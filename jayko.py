@@ -38,7 +38,7 @@ class ASTNode():
     def __init__(self):
         self.node_type = None
         self.node_data = None
-        self.lbp
+        self.lbp = 0            # the code runs with this but doenst do anything useful yet.
         self.children = []
 
     def nud(self):
@@ -77,31 +77,6 @@ class Jayko:
             # print(line.strip("\n"))
             self.tokenize2(line.strip("\n"))
 
-    #def tokenize(self, line):
-    #    print("tokenizing -> ", line)
-    #    tokens = line.split()
-    #    print("split line ->", tokens)
-    #    # self.token_list = []
-    #    for token in tokens:
-    #        if token == "let":
-    #            self.token_list.append( (TokenType.LET,) )
-    #        elif token == ":=":
-    #            self.token_list.append( (TokenType.ASSIGN,) )
-    #        elif token == "say":
-    #            self.token_list.append( (TokenType.SAY,) )
-    #        elif token == ";":
-    #            self.token_list.append( (TokenType.SEMICOLON,) )
-    #        elif token.isdigit():
-    #            self.token_list.append( (TokenType.NUMBER, int(token) ) ) 
-    #        else:
-    #            # for now we just assume anything not this is an identifier
-    #            if token not in self.reserved_keywords:
-    #                self.token_list.append( (TokenType.IDENTIFIER, token) )
-
-    #    print(self.token_list)
-    #    print("TOKENIZING COMPLETE\n")
-
-    #    # self.build_ast()
     def tokenize2(self,line):
         # right now the tokenizer doesnt support multiple character lookahead,
         # so operators and identifiers need to be separated by a space.
@@ -182,6 +157,8 @@ class Jayko:
             self.root.append( self.parse_let() )
 
     def parse_let(self):
+        # the way these expect/advance and peek helpers work is becuase
+        # self.cursor is "global" wrt to the Jayko class
         self.expect(TokenType.LET)
         ident = self.expect(TokenType.IDENTIFIER)
         self.expect(TokenType.ASSIGN)
