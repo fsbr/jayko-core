@@ -26,9 +26,10 @@ class ASSIGNMENT_TOKEN:
 class INT_LITERAL_TOKEN:
     def __init__(self):
         self.type = "INT_LITERAL_TOKEN"
+        self.lbp = 1
         self.value = None
     def nud(self):
-        node = IDENTIFIER_AST_NODE()
+        node = INT_LITERAL_AST_NODE()
         node.value = self.value
         return node
     def __repr__(self):
@@ -50,12 +51,38 @@ class SEMICOLON_TOKEN:
 class ADD_TOKEN:
     def __init__(self):
         self.type = "ADD_TOKEN"
+        self.lbp = 10
+    def led(self, left, jayko_instance):
+        print("ADD_TOKEN.led")
+        right = jayko_instance.expr(self.lbp)
+
+        add_node = ADD_AST_NODE() 
+        add_node.lvalue = left
+        add_node.rvalue = right
+
+        return add_node
     def __repr__(self):
         return f"TokenType = {self.type}"
 
 class MUL_TOKEN:
     def __init__(self):
         self.type = "MUL_TOKEN"
+        self.lbp = 20
+    def led(self, left, jayko_instance):
+        print("MUL_TOKEN.led")
+        right = jayko_instance.expr(self.lbp)
+
+        mul_node = MUL_AST_NODE() 
+        mul_node.lvalue = left
+        mul_node.rvalue = right
+        return mul_node
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
+class EOF_TOKEN:
+    def __init__(self):
+        self.type = "EOF_TOKEN"
+        self.lbp = 0
     def __repr__(self):
         return f"TokenType = {self.type}"
 
@@ -77,13 +104,28 @@ class IDENTIFIER_AST_NODE:
     def __repr__(self):
         return f"AST_NODE type = {self.type}, value = {self.value}"
 
-class INT_LITERAL_NODE:
+class INT_LITERAL_AST_NODE:
     def __init__(self):
-        self.type = "INT_LITERAL_NODE"
+        self.type = "INT_LITERAL_AST_NODE"
         self.value = None
     def __repr__(self):
         return f"AST_NODE type = {self.type}, value = {self.value}"
 
+class ADD_AST_NODE:
+    def __init__(self):
+        self.type = "ADD_AST_NODE"
+        self.lvalue = None
+        self.rvalue = None
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
+
+class MUL_AST_NODE:
+    def __init__(self):
+        self.type = "MUL_AST_NODE"
+        self.lvalue = None
+        self.rvalue = None
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
 
 
 
@@ -100,6 +142,9 @@ class Jayko:
 
         
         self.root = []                      # root is where the ast is formed, in order
+
+        # debugging stuff
+        self.expr_call_count = 0
 
     def read_source(self,input_file):
         # read_source(): takes the source code and puts every character into
@@ -140,7 +185,7 @@ class Jayko:
                 self.candidate_tokens.append(token_to_add)
 
                 candidate_token_str = ""
-            elif ( current_char in ("*", "+") ): 
+            elif ( current_char in ("*", "+",";") ): 
                 candidate_token_str +=current_char
                 token_to_add = self.token_dispatch(candidate_token_str)
                 self.candidate_tokens.append(token_to_add)
@@ -148,7 +193,7 @@ class Jayko:
 
                 candidate_token_str = ""
 
-                if ( next_char in ("*", "+") ): 
+                if ( next_char in ("*", "+",";") ): 
                     raise SyntaxError("We do not support double operators yet")
 
             elif current_char == ":":               # needs to handle :=
@@ -176,6 +221,7 @@ class Jayko:
                 candidate_token_str = ""
 
             self.advance_chars()
+        self.candidate_tokens.append(EOF_TOKEN())
         print("END TOKENIZING!\n\n")
 
     def token_dispatch(self, candidate_token_str):
@@ -228,6 +274,9 @@ class Jayko:
         id_node_to_add.value = identifier
 
         self.expect("ASSIGNMENT_TOKEN")
+
+        print("\nbefore self.expr() is first called")
+        print(f"current token = {self.candidate_tokens[ self.token_cursor ]}\n")
         value = self.expr()
         print(f"DEEP FUCKING VALUE {value}")
 
@@ -247,20 +296,45 @@ class Jayko:
           
 
     def expr(self, rbp = 0):
-        # function for pratt parsing
-        current_token = self.candidate_tokens[ self.token_cursor ] 
-        next_token = self.next_token()
-        left = current_token.nud()
-        while rbp < next_token.lbp:
-            current_token = next_token
-            token = self.next_token()
-            left = current_token.led(left)
+        t = self.advance_tokens()
+        p_token = self.candidate_tokens[ self.token_cursor ] 
+        left = t.nud()
+        
+        self.expr_call_count+=1
+        print(f"CALLING EXPR {self.expr_call_count}")
+        print(f"\nt = {t}")
+        print(f"p_token() = {p_token}")
+        print(f"p_token.lbp {p_token.lbp}")
+        print(f" top of loop rbp {rbp}")
+        print(f"go into loop?,  {rbp < p_token.lbp}\n")
+
+        while rbp < self.peek_tokens().lbp: #p_token.lbp:
+            t = self.advance_tokens()
+
+            print(f"\nt in loop = {t}")
+            print(f" rbp that got us here {rbp}")            
+            print(f"p_token = {p_token}")
+            print(f"p_token.lbp that got us here {p_token.lbp}")
+            left = t.led(left, self)
         return left
+    #def expr(self, rbp = 0):
+    #    # function for pratt parsing
+    #    current_token = self.advance_tokens()
 
+    #    next_token = self.candidate_tokens[ self.token_cursor ]  
+    #    left = current_token.nud()
 
+    #    print("\n\n\n")
+    #    print(f" current token = {current_token}")
+    #    print(f" next_token = {next_token}")
+    #    print(f" self.candidate_tokens = {self.candidate_tokens}")
+    #    print("\n\n\n")
 
-
-
+    #    while rbp < next_token.lbp:
+    #        current_token = next_token
+    #        token = self.next_token()
+    #        left = current_token.led(left, self)
+    #    return left
 
     #####################################################
     # HELPER METHODS FOR LEXING AND PARSING
@@ -285,8 +359,10 @@ class Jayko:
         return value
 
     def next_token(self):
-        self.token_cursor +=1
-        value = self.candidate_tokens[ self.token_cursor ]
+        #self.token_cursor +=1
+        print(f"self.token_cursor = {self.token_cursor}")
+        print(f"length of token list = {len(self.candidate_tokens)}")
+        value = self.candidate_tokens[ self.token_cursor+1]
         return value
 
     def expected_token(self):
