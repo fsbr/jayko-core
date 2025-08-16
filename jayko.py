@@ -1,6 +1,9 @@
 # FRESH START FOR JAYKO
 import sys
 
+####################################################################
+# EVENTUALLY I WANT THESE CUMBERSOME TOKEN CLASSES IN THEIR OWN FILE
+####################################################################
 class LET_TOKEN:
     def __init__(self):
         self.type = "LET_TOKEN"
@@ -25,7 +28,9 @@ class INT_LITERAL_TOKEN:
         self.type = "INT_LITERAL_TOKEN"
         self.value = None
     def nud(self):
-        return self.value
+        node = IDENTIFIER_AST_NODE()
+        node.value = self.value
+        return node
     def __repr__(self):
         return f"TokenType = {self.type} value = {self.value}"
 
@@ -54,6 +59,37 @@ class MUL_TOKEN:
     def __repr__(self):
         return f"TokenType = {self.type}"
 
+###############################################################################
+#  AST NODES SHOULD ALSO GO IN THEIR OWN FILE SOME DAY                        #
+###############################################################################
+class ASSIGNMENT_AST_NODE:
+    def __init__(self):
+        self.type = "ASSIGNMENT_AST_NODE"
+        self.lvalue = None                  # the variable name
+        self.rvalue = None                  # the root of the subtree forming the expression to be stored in lvalue
+    def __repr__(self):
+        return f"AST_NODE type = {self.type} value = {self.lvalue} "
+
+class IDENTIFIER_AST_NODE:
+    def __init__(self):
+        self.type = "IDENTIFIER_AST_NODE"
+        self.value = None                                               # WE ONLY SUPPORT INTEGERS RN
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}, value = {self.value}"
+
+class INT_LITERAL_NODE:
+    def __init__(self):
+        self.type = "INT_LITERAL_NODE"
+        self.value = None
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}, value = {self.value}"
+
+
+
+
+###############################################################################
+#  LEXING AND PARSING FOR JAYKO
+###############################################################################
 class Jayko:
     def __init__(self):
         self.raw_characters = ""            # holds the text of the source code
@@ -61,6 +97,9 @@ class Jayko:
 
         self.candidate_tokens = []          # breaks up the text into the individual parts of speech
         self.token_cursor = 0
+
+        
+        self.root = []                      # root is where the ast is formed, in order
 
     def read_source(self,input_file):
         # read_source(): takes the source code and puts every character into
@@ -172,22 +211,39 @@ class Jayko:
         # and output the AST
         current_token = self.candidate_tokens[ self.token_cursor ]
         if current_token.type == "LET_TOKEN":
-            self.parse_let()
+            let_subtree = self.parse_let()
+            self.root.append(let_subtree)
 
 
     def parse_let(self):
         # a LET statement is 
         # "let" identifier ":=" <expr> ";"
-        print(self.candidate_tokens[ self.token_cursor ] ) 
+       
+     
         self.expect("LET_TOKEN") 
-        self.expect("IDENTIFIER_TOKEN")
-        self.expect("ASSIGNMENT_TOKEN")
 
-        print("before entering self.expr")
-        print(f"*****token is {self.candidate_tokens[ self.token_cursor ]}")
+        self.expect("IDENTIFIER_TOKEN")
+        identifier = self.expected_token().value 
+        id_node_to_add = IDENTIFIER_AST_NODE()
+        id_node_to_add.value = identifier
+
+        self.expect("ASSIGNMENT_TOKEN")
         value = self.expr()
-        print("DEEP FUCKIGNM VALUE ", value)
+        print(f"DEEP FUCKING VALUE {value}")
+
         self.expect("SEMICOLON_TOKEN")
+
+        # assume for now that assignment node is the head of the subtree
+        assignment_node_to_add = ASSIGNMENT_AST_NODE()
+        assignment_node_to_add.lvalue = id_node_to_add
+        assignment_node_to_add.rvalue = value
+        print("\n\n\n")
+
+        return assignment_node_to_add
+
+        
+
+        
           
 
     def expr(self, rbp = 0):
@@ -209,19 +265,22 @@ class Jayko:
     #####################################################
     # HELPER METHODS FOR LEXING AND PARSING
     #####################################################
+
+    # for raw text
     def peek_chars(self):
-        return self.raw_characters[self.raw_char_cursor+1]
+        return self.raw_characters[ self.raw_char_cursor+1 ]
 
     def advance_chars(self):
         value = self.raw_characters[ self.raw_char_cursor ]
         self.raw_char_cursor +=1
         return value
 
+    # for tokens
     def peek_tokens(self):
-        return self.candidate_tokens[self.token_cursor+1]
+        return self.candidate_tokens[ self.token_cursor+1 ]
 
     def advance_tokens(self):
-        value = self.candidate_tokens[ self.token_cursor]
+        value = self.candidate_tokens[ self.token_cursor ]
         self.token_cursor +=1
         return value
 
@@ -229,6 +288,9 @@ class Jayko:
         self.token_cursor +=1
         value = self.candidate_tokens[ self.token_cursor ]
         return value
+
+    def expected_token(self):
+        return self.candidate_tokens[ self.token_cursor-1 ]
 
     def expect(self, token_type):
         t = self.advance_tokens()
