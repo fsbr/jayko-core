@@ -1,5 +1,5 @@
 # FRESH START FOR JAYKO
-import sys
+import sys, subprocess
 
 ####################################################################
 # EVENTUALLY I WANT THESE CUMBERSOME TOKEN CLASSES IN THEIR OWN FILE
@@ -94,6 +94,12 @@ class ASSIGNMENT_AST_NODE:
         self.type = "ASSIGNMENT_AST_NODE"
         self.lvalue = None                  # the variable name
         self.rvalue = None                  # the root of the subtree forming the expression to be stored in lvalue
+    def code_gen(self):
+        if self.rvalue.type == "INT_LITERAL_AST_NODE": 
+            ctype = "int"
+        return f"\t{ctype} {self.lvalue.value} = {self.rvalue.value};\n"
+
+
     def __repr__(self):
         return f"AST_NODE type = {self.type} value = {self.lvalue} "
 
@@ -131,6 +137,8 @@ class SAY_AST_NODE:
     def __init__(self):
         self.type = "SAY_AST_NODE"
         self.value = None
+    def code_gen(self):
+        return f"\tprintf( \"%d\\n\", {self.value} );\n"
     def __repr__(self):
         return f"AST_NODE type = {self.type}, value = {self.value}"
 
@@ -152,6 +160,8 @@ class Jayko:
 
         # debugging stuff
         self.expr_call_count = 0
+
+        self.big_string = ""                # big_string is where the c code ends up
 
     def read_source(self,input_file):
         # read_source(): takes the source code and puts every character into
@@ -356,31 +366,42 @@ class Jayko:
                 break
 
             t = self.advance_tokens()
-
-            print(f"\nt in loop = {t}")
-            print(f" rbp that got us here {rbp}")            
-            print(f"p_token = {p_token}")
-            print(f"p_token.lbp that got us here {p_token.lbp}")
             left = t.led(left, self)
         return left
-    #def expr(self, rbp = 0):
-    #    # function for pratt parsing
-    #    current_token = self.advance_tokens()
 
-    #    next_token = self.candidate_tokens[ self.token_cursor ]  
-    #    left = current_token.nud()
+    def generate_code(self):
+        # the idea of this is that it will take self.root, and traverse each subtree to generate code
+        # that evaluates what we wrote in Jayko
+        print("BEGIN GENERATING CODE")
+        print(f"self.root  = {self.root}")
 
-    #    print("\n\n\n")
-    #    print(f" current token = {current_token}")
-    #    print(f" next_token = {next_token}")
-    #    print(f" self.candidate_tokens = {self.candidate_tokens}")
-    #    print("\n\n\n")
+        # i wonder if this should be called "statement node"?
+        for top_level_node in self.root:
+            print(f"top_level_node = {top_level_node}")
+            text_to_add = self.traversal(top_level_node)
+            self.big_string += text_to_add
 
-    #    while rbp < next_token.lbp:
-    #        current_token = next_token
-    #        token = self.next_token()
-    #        left = current_token.led(left, self)
-    #    return left
+        self.form_output_file()
+    
+    def form_output_file(self):
+        # this function should take the big string and stick it into one (potentially huge) main file
+        # until we learn of smarter ways to generate cod
+        f = open("output.c", "w")
+        f.write("#include <stdio.h>\n")
+        f.write("\n")
+        f.write("int main() {\n")   
+        f.write(self.big_string)
+        f.write("\treturn 0;\n")
+        f.write("}\n")
+        f.close()
+
+    def traversal(self, node):
+        # implements post order traversal for the AST
+        print(f"PROCESSING NODE OF TYPE {node.__dict__}")
+        return node.code_gen()
+        
+        
+
 
     #####################################################
     # HELPER METHODS FOR LEXING AND PARSING
@@ -433,6 +454,9 @@ if __name__ == "__main__":
     
     # the way to load the file in is PRESCRIBED for now so as long as we do it this way we will be fine
 
+    # Delete the old output file
+    subprocess.run(["rm", "output.c"])
+
     source_file = sys.argv[1] 
     print("source_file", sys.argv[1])
 
@@ -441,4 +465,11 @@ if __name__ == "__main__":
     j.tokenize()
     print(f" candidate_tokens = {j.candidate_tokens}")
     j.parse()
-    #j.generate_code()
+    j.generate_code()
+
+    # Run GCC on the newly created output
+    print("Compiling...")
+    subprocess.run(["gcc", "-o", "output", "output.c"])
+
+    print("PROGRAM OUTPUT: ")
+    subprocess.run(["./output"])
