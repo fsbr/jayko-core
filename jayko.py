@@ -40,6 +40,14 @@ class INT_LITERAL_TOKEN:
     def __repr__(self):
         return f"TokenType = {self.type} value = {self.value}"
 
+class STRING_LITERAL_TOKEN:
+    def __init__(self):
+        self.type = "STRING_LITERAL_TOKEN"
+        self.lbp = 1 # no idea what it should actually be, so just picking the same as the other literals
+        self.value = None
+    def __repr__(self):
+        return f"TokenType = {self.type} value = {self.value}"
+
 class SAY_TOKEN:
     def __init__(self):
         self.type = "SAY_TOKEN"
@@ -143,6 +151,15 @@ class INT_LITERAL_AST_NODE:
     def __repr__(self):
         return f"AST_NODE type = {self.type}, value = {self.value}"
 
+class STRING_LITERAL_AST_NODE:
+    def __init__(self):
+        self.type = "STRING_LITERAL_AST_NODE"           
+        self.value = None                               
+    def code_gen(self):
+        return str(self.value)
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}, value = {self.value}"
+
 class ADD_AST_NODE:
     def __init__(self):
         self.type = "ADD_AST_NODE"
@@ -186,8 +203,14 @@ class SAY_AST_NODE:
     def __init__(self):
         self.type = "SAY_AST_NODE"
         self.value = None
+        self.route = None                               # route is to dispatch to the correct code generation
     def code_gen(self):
-        return f"\tprintf( \"%d\\n\", {self.value} );\n"
+        if self.route == "IDENTIFIER_TOKEN":                         # this feels like a hack, because we are 
+            return f"\tprintf( \"%d\\n\", {self.value} );\n"    # assuming depth 1 expressions.
+        if self.route == "STRING_LITERAL_TOKEN":
+            l1 = f"\tchar str[] = {self.value};\n"
+            l2 = f"\tprintf( \"%s\\n\", str );\n"
+            return l1 + l2 
     def __repr__(self):
         return f"AST_NODE type = {self.type}, value = {self.value}"
 
@@ -284,6 +307,18 @@ class Jayko:
 
                 candidate_token_str = ""
 
+            elif current_char == "\"":
+                candidate_token_str += current_char
+                self.advance_chars()
+                current_char = self.raw_characters [ self.raw_char_cursor ]
+                while current_char != "\"":
+                    candidate_token_str += current_char
+                    self.advance_chars()
+                    current_char = self.raw_characters [ self.raw_char_cursor ]
+                candidate_token_str+= current_char
+                print(f"candidate_token_str {candidate_token_str}")
+                token_to_add = self.token_dispatch(candidate_token_str)
+                self.candidate_tokens.append(token_to_add)
             if next_char == ";":
                 # we have to add the semi colon token, to make it easier to parse statements
                 print("DO WE EVER DO THE NEXT CHAR VERSION")
@@ -293,6 +328,8 @@ class Jayko:
                 self.candidate_tokens.append(token_to_add)
                 candidate_token_str = ""
 
+            # WRT to 4*5 failing, and "-" not being seen by the lexer, the reason is we don't match
+            # every situation.  Haskell would never...
             self.advance_chars()
         self.candidate_tokens.append(EOF_TOKEN())
         print("END TOKENIZING!\n\n")
@@ -319,6 +356,12 @@ class Jayko:
         elif candidate_token_str.isalnum():
             token_to_add = IDENTIFIER_TOKEN()
             token_to_add.value = str(candidate_token_str)
+        elif candidate_token_str[0] == "\"" and candidate_token_str[-1] == "\"":
+            token_to_add = STRING_LITERAL_TOKEN()
+            token_to_add.value = candidate_token_str
+            print(f"[token_dispatch] cts = {candidate_token_str}")
+            print(f"candidate_token_str[0] = {candidate_token_str[0]}")
+            print(f"candidate_token_str[-1] = {candidate_token_str[-1]}")
         else:
             print(f"candidate token str {candidate_token_str} not found")
             print("Exiting...")
@@ -356,13 +399,27 @@ class Jayko:
         # and eventually we want it to be
         # "say" <identifier> | <expr> ";"
         self.expect("SAY_TOKEN")
-        self.expect("IDENTIFIER_TOKEN")
-        identifier = self.expected_token().value 
+
+
+        # self.expect("IDENTIFIER_TOKEN")
+        # I think a better thing to do is change the expect() function so that it can accept
+        # multiple different token types, but I'm not really sure how to do that/don't really
+        # feel like figuring it out right now, but I should do it because it makes the parsing
+        # logic look a LOT better 
+        t = self.advance_tokens() # we would have normally called this in expect
+        if (t.type == "STRING_LITERAL_TOKEN" or t.type == "IDENTIFIER_TOKEN"):
+            print(f"self.expected_token() {self.expected_token()}")
+            identifier = self.expected_token().value 
+
+            say_node = SAY_AST_NODE()
+            say_node.value = identifier 
+            say_node.route = t.type
+
+        else:
+            print(f"[parse_say] t.type = {t.type}")
+            raise SyntaxError("Encountered an Incorrect Node Type")
+
         self.expect("SEMICOLON_TOKEN")
-
-        say_node = SAY_AST_NODE()
-        say_node.value = identifier 
-
         return say_node
             
 
