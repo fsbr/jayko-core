@@ -267,6 +267,8 @@ class Jayko:
             if current_token.type == "LET_TOKEN":
                 let_subtree = self.parse_let()
                 self.root.append(let_subtree)
+            elif current_token.type == "EOF_TOKEN":
+                break
 
 
             # put this after the different grammar structures and
@@ -321,7 +323,13 @@ class Jayko:
         print(f" top of loop rbp {rbp}")
         print(f"go into loop?,  {rbp < p_token.lbp}\n")
 
-        while rbp < self.peek_tokens().lbp: #p_token.lbp:
+        # while rbp < self.peek_tokens().lbp: # ok
+        while True:
+            if self.peek_tokens().type in ("LET_TOKEN", "SEMICOLON_TOKEN", "SAY_TOKEN", "EOF_TOKEN"):
+                break
+            if rbp >= self.peek_tokens().lbp:
+                break
+
             t = self.advance_tokens()
 
             print(f"\nt in loop = {t}")
