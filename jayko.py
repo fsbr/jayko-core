@@ -163,7 +163,7 @@ class Jayko:
         print("BEGIN TOKENIZING")
         candidate_token_str = ""
 
-        while self.raw_char_cursor < (len(self.raw_characters)-1):        # working
+        while self.raw_char_cursor < (len(self.raw_characters)):        # working
         #while self.raw_char_cursor < (len(self.raw_characters)):        # working
             current_char = self.raw_characters[ self.raw_char_cursor ] 
             next_char = self.peek_chars()
@@ -221,6 +221,7 @@ class Jayko:
             if next_char == ";":
                 # we have to add the semi colon token, to make it easier to parse statements
                 print("DO WE EVER DO THE NEXT CHAR VERSION")
+                self.advance_chars()
                 candidate_token_str = next_char
                 token_to_add = self.token_dispatch(candidate_token_str)
                 self.candidate_tokens.append(token_to_add)
@@ -308,6 +309,7 @@ class Jayko:
 
     def expr(self, rbp = 0):
         t = self.advance_tokens()
+
         p_token = self.candidate_tokens[ self.token_cursor ] 
         left = t.nud()
         
@@ -352,13 +354,22 @@ class Jayko:
     #####################################################
 
     # for raw text
-    def peek_chars(self):
-        return self.raw_characters[ self.raw_char_cursor+1 ]
+    def peek_chars(self, offset = 1):
+        peek_index = self.raw_char_cursor + offset 
+        print(f"peek_indx = {peek_index}")
+        print(f"len(self.raw_characters) = {len(self.raw_characters)}")
+        if peek_index < len(self.raw_characters):
+            return self.raw_characters[peek_index]
+        else:
+            return None
 
     def advance_chars(self):
-        value = self.raw_characters[ self.raw_char_cursor ]
         self.raw_char_cursor +=1
-        return value
+        if self.raw_char_cursor < len(self.raw_characters):
+            value = self.raw_characters[ self.raw_char_cursor ]
+            return value
+        else:
+            return None
 
     # for tokens
     def peek_tokens(self):
