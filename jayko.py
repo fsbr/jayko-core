@@ -159,13 +159,18 @@ class Jayko:
     def tokenize(self):
         # the tokenize() function takes the list of raw characters and processes them into 
         # a list of token objects
+        # the hack thing to do rn is to just make sure operators are separated by spaces.
         print("BEGIN TOKENIZING")
         candidate_token_str = ""
 
-        while self.raw_char_cursor < (len(self.raw_characters)-1):
+        while self.raw_char_cursor < (len(self.raw_characters)-1):        # working
+        #while self.raw_char_cursor < (len(self.raw_characters)):        # working
             current_char = self.raw_characters[ self.raw_char_cursor ] 
             next_char = self.peek_chars()
 
+            # this actually fails for the situation of 4*5, because it goes in here.... im not sure
+            # what the right way to look at it is. 
+            # for now though, it requires all the impelmented binop tokens to be separated by space
             if current_char.isalnum():              # in this case, it could be an identifier, or a keyword
                 candidate_token_str += current_char
                 while next_char.isalnum():
@@ -215,6 +220,7 @@ class Jayko:
 
             if next_char == ";":
                 # we have to add the semi colon token, to make it easier to parse statements
+                print("DO WE EVER DO THE NEXT CHAR VERSION")
                 candidate_token_str = next_char
                 token_to_add = self.token_dispatch(candidate_token_str)
                 self.candidate_tokens.append(token_to_add)
@@ -255,11 +261,21 @@ class Jayko:
     def parse(self):
         # Parsing should take the list of self.candidate_tokens
         # and output the AST
-        current_token = self.candidate_tokens[ self.token_cursor ]
-        if current_token.type == "LET_TOKEN":
-            let_subtree = self.parse_let()
-            self.root.append(let_subtree)
+        while self.token_cursor < len(self.candidate_tokens):
+            current_token = self.candidate_tokens[ self.token_cursor ]
+            if current_token.type == "LET_TOKEN":
+                let_subtree = self.parse_let()
+                self.root.append(let_subtree)
 
+
+            # put this after the different grammar structures and
+            # pray it isnt an off by 1... this isn't getting us to the next line of code
+            current_token = self.candidate_tokens[ self.token_cursor ] 
+            print(f"in parse, self.token_cursor = {self.token_cursor}")
+            print(f"in parse, len(self.candidate_tokens)= {len(self.candidate_tokens)}")
+            print(f"in parse, current token is = {current_token}")
+
+            
 
     def parse_let(self):
         # a LET statement is 
@@ -289,11 +305,6 @@ class Jayko:
         print("\n\n\n")
 
         return assignment_node_to_add
-
-        
-
-        
-          
 
     def expr(self, rbp = 0):
         t = self.advance_tokens()
