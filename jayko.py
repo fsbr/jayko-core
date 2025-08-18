@@ -127,6 +127,13 @@ class MUL_AST_NODE:
     def __repr__(self):
         return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
 
+class SAY_AST_NODE:
+    def __init__(self):
+        self.type = "SAY_AST_NODE"
+        self.value = None
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}, value = {self.value}"
+
 
 
 ###############################################################################
@@ -267,6 +274,9 @@ class Jayko:
             if current_token.type == "LET_TOKEN":
                 let_subtree = self.parse_let()
                 self.root.append(let_subtree)
+            elif current_token.type == "SAY_TOKEN":
+                say_subtree = self.parse_say()
+                self.root.append(say_subtree)
             elif current_token.type == "EOF_TOKEN":
                 break
 
@@ -278,6 +288,21 @@ class Jayko:
             print(f"in parse, len(self.candidate_tokens)= {len(self.candidate_tokens)}")
             print(f"in parse, current token is = {current_token}")
 
+
+    def parse_say(self):
+        # a SAY statement is
+        # "say" <identifier> ";"
+        # and eventually we want it to be
+        # "say" <identifier> | <expr> ";"
+        self.expect("SAY_TOKEN")
+        self.expect("IDENTIFIER_TOKEN")
+        identifier = self.expected_token().value 
+        self.expect("SEMICOLON_TOKEN")
+
+        say_node = SAY_AST_NODE()
+        say_node.value = identifier 
+
+        return say_node
             
 
     def parse_let(self):
@@ -392,7 +417,7 @@ class Jayko:
         #self.token_cursor +=1
         print(f"self.token_cursor = {self.token_cursor}")
         print(f"length of token list = {len(self.candidate_tokens)}")
-        value = self.candidate_tokens[ self.token_cursor+1]
+        value = self.candidate_tokens[ self.token_cursor+1 ]
         return value
 
     def expected_token(self):

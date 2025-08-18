@@ -1,2 +1,4 @@
 let y := 9 + 8 * 4 + 23;
 let x := 6 + 7;
+say x;
+say y;
