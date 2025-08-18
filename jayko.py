@@ -26,7 +26,7 @@ class ASSIGNMENT_TOKEN:
 class INT_LITERAL_TOKEN:
     def __init__(self):
         self.type = "INT_LITERAL_TOKEN"
-        self.lbp = 1
+        self.lbp = 1 # 1 works
         self.value = None
     def nud(self):
         node = INT_LITERAL_AST_NODE()
@@ -54,6 +54,7 @@ class ADD_TOKEN:
         self.lbp = 10
     def led(self, left, jayko_instance):
         print("ADD_TOKEN.led")
+        print(f"[led {self.type}] lbp={self.lbp}  cursor={jayko_instance.token_cursor}")
         right = jayko_instance.expr(self.lbp)
 
         add_node = ADD_AST_NODE() 
@@ -70,6 +71,7 @@ class MUL_TOKEN:
         self.lbp = 20
     def led(self, left, jayko_instance):
         print("MUL_TOKEN.led")
+        print(f"[led {self.type}] lbp={self.lbp}  cursor={jayko_instance.token_cursor}")
         right = jayko_instance.expr(self.lbp)
 
         mul_node = MUL_AST_NODE() 
@@ -126,6 +128,7 @@ class ADD_AST_NODE:
         self.lvalue = None
         self.rvalue = None
     def code_gen(self):
+        print("Generating code for ADD")
         left_code = self.lvalue.code_gen()
         right_code = self.rvalue.code_gen()
         return f"({left_code} + {right_code})"
@@ -138,6 +141,7 @@ class MUL_AST_NODE:
         self.lvalue = None
         self.rvalue = None
     def code_gen(self):
+        print("Generating code for MUL")
         left_code = self.lvalue.code_gen()
         right_code = self.rvalue.code_gen()
         return f"({left_code} * {right_code})"
@@ -356,24 +360,19 @@ class Jayko:
         return assignment_node_to_add
 
     def expr(self, rbp = 0):
+        print(f"[expr] rbp={rbp}  peek={self.peek_tokens().type}  peek.lbp={getattr(self.peek_tokens(), 'lbp', None)}  cursor={self.token_cursor}")
         t = self.advance_tokens()
 
-        p_token = self.candidate_tokens[ self.token_cursor ] 
         left = t.nud()
         
         self.expr_call_count+=1
-        print(f"CALLING EXPR {self.expr_call_count}")
-        print(f"\nt = {t}")
-        print(f"p_token() = {p_token}")
-        print(f"p_token.lbp {p_token.lbp}")
-        print(f" top of loop rbp {rbp}")
-        print(f"go into loop?,  {rbp < p_token.lbp}\n")
 
         # while rbp < self.peek_tokens().lbp: # ok
         while True:
-            if self.peek_tokens().type in ("LET_TOKEN", "SEMICOLON_TOKEN", "SAY_TOKEN", "EOF_TOKEN"):
+            tok = self.peek_tokens()
+            if tok.type in ("LET_TOKEN", "SEMICOLON_TOKEN", "SAY_TOKEN", "EOF_TOKEN"):
                 break
-            if rbp >= self.peek_tokens().lbp:
+            if rbp >= tok.lbp:
                 break
 
             t = self.advance_tokens()
@@ -436,7 +435,7 @@ class Jayko:
 
     # for tokens
     def peek_tokens(self):
-        return self.candidate_tokens[ self.token_cursor+1 ]
+        return self.candidate_tokens[ self.token_cursor ] # self.token_cursor + 1 "works"
 
     def advance_tokens(self):
         value = self.candidate_tokens[ self.token_cursor ]
@@ -458,6 +457,17 @@ class Jayko:
         if t.type != token_type:
             raise SyntaxError(f"Expected {token_type} got {t.type}")
         
+    ########################################################################
+    # DEBUGGING
+    ########################################################################
+    def print_ast(self, node, indent = 0):
+        print("     "*indent + str(node))
+        if hasattr(node, "value"):
+            self.print_ast(node.value, indent+1)
+        if hasattr(node, "lvalue"):
+            self.print_ast(node.lvalue, indent+1)
+        if hasattr(node, "rvalue"):
+            self.print_ast(node.rvalue, indent+1)
 
 if __name__ == "__main__":
     
@@ -475,6 +485,11 @@ if __name__ == "__main__":
     j.tokenize()
     print(f" candidate_tokens = {j.candidate_tokens}")
     j.parse()
+
+    print("DEBUGGING PARSE TREE")
+    for node in j.root:
+        j.print_ast(node,0)
+    print("END PARSE TREE PRINTOUT")
     j.generate_code()
 
     # Run GCC on the newly created output
