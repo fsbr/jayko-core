@@ -14,6 +14,11 @@ class IDENTIFIER_TOKEN:
     def __init__(self):
         self.type = "IDENTIFIER_TOKEN"
         self.value = None
+        self.lbp = 1
+    def nud(self):
+        node = IDENTIFIER_AST_NODE()
+        node.value = self.value
+        return node
     def __repr__(self):
         return f"TokenType = {self.type}, value = {self.value}"
 
@@ -81,6 +86,22 @@ class MUL_TOKEN:
     def __repr__(self):
         return f"TokenType = {self.type}"
 
+class MOD_TOKEN:
+    def __init__(self):
+        self.type = "MOD_TOKEN"
+        self.lbp = 20
+    def led(self, left, jayko_instance):
+        #print("MUL_TOKEN.led")
+        #print(f"[led {self.type}] lbp={self.lbp}  cursor={jayko_instance.token_cursor}")
+        right = jayko_instance.expr(self.lbp)
+
+        mod_node = MOD_AST_NODE() 
+        mod_node.lvalue = left
+        mod_node.rvalue = right
+        return mod_node
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
 class EOF_TOKEN:
     def __init__(self):
         self.type = "EOF_TOKEN"
@@ -145,6 +166,19 @@ class MUL_AST_NODE:
         left_code = self.lvalue.code_gen()
         right_code = self.rvalue.code_gen()
         return f"({left_code} * {right_code})"
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
+
+class MOD_AST_NODE:
+    def __init__(self):
+        self.type = "MOD_AST_NODE"
+        self.lvalue = None
+        self.rvalue = None
+    def code_gen(self):
+        print("Generating code for MOD")
+        left_code = self.lvalue.code_gen()
+        right_code = self.rvalue.code_gen()
+        return f"({left_code} % {right_code})"
     def __repr__(self):
         return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
 
@@ -222,7 +256,7 @@ class Jayko:
                 self.candidate_tokens.append(token_to_add)
 
                 candidate_token_str = ""
-            elif ( current_char in ("*", "+",";") ): 
+            elif ( current_char in ("*", "+", ";", "*", "%") ): 
                 candidate_token_str +=current_char
                 token_to_add = self.token_dispatch(candidate_token_str)
                 self.candidate_tokens.append(token_to_add)
@@ -230,7 +264,7 @@ class Jayko:
 
                 candidate_token_str = ""
 
-                if ( next_char in ("*", "+",";") ): 
+                if ( next_char in ("*", "+",";", "*", "%") ): 
                     raise SyntaxError("We do not support double operators yet")
 
             elif current_char == ":":               # needs to handle :=
@@ -273,6 +307,8 @@ class Jayko:
             token_to_add = MUL_TOKEN()
         elif candidate_token_str == "+":
             token_to_add = ADD_TOKEN()
+        elif candidate_token_str == "%":
+            token_to_add = MOD_TOKEN()
         elif candidate_token_str == ":=":
             token_to_add = ASSIGNMENT_TOKEN()
         elif candidate_token_str == "say":
@@ -435,6 +471,9 @@ class Jayko:
 
     # for tokens
     def peek_tokens(self):
+        # why it's not self.token_cursor + 1, is because self.advance_tokens advances the cursor
+        # when used in conjunction with peek_tokens, so the "peek" token is actually where the 
+        # cursor is at a given time.
         return self.candidate_tokens[ self.token_cursor ] # self.token_cursor + 1 "works"
 
     def advance_tokens(self):
@@ -486,15 +525,15 @@ if __name__ == "__main__":
     print(f" candidate_tokens = {j.candidate_tokens}")
     j.parse()
 
-    print("DEBUGGING PARSE TREE")
-    for node in j.root:
-        j.print_ast(node,0)
-    print("END PARSE TREE PRINTOUT")
+    print("PRINTING THE TREES")
+    for top_level_node in j.root:
+        j.print_ast(top_level_node)
     j.generate_code()
+
 
     # Run GCC on the newly created output
     print("Compiling...")
     subprocess.run(["gcc", "-o", "output", "output.c"])
 
-    print("PROGRAM OUTPUT: ")
+    print("\n\nPROGRAM OUTPUT: ")
     subprocess.run(["./output"])
