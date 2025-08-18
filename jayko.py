@@ -95,11 +95,9 @@ class ASSIGNMENT_AST_NODE:
         self.lvalue = None                  # the variable name
         self.rvalue = None                  # the root of the subtree forming the expression to be stored in lvalue
     def code_gen(self):
-        if self.rvalue.type == "INT_LITERAL_AST_NODE": 
-            ctype = "int"
-        return f"\t{ctype} {self.lvalue.value} = {self.rvalue.value};\n"
-
-
+        rhs = self.rvalue.code_gen()
+        identifier = self.lvalue.code_gen()
+        return f"\tint {identifier} = {rhs};\n"
     def __repr__(self):
         return f"AST_NODE type = {self.type} value = {self.lvalue} "
 
@@ -107,6 +105,9 @@ class IDENTIFIER_AST_NODE:
     def __init__(self):
         self.type = "IDENTIFIER_AST_NODE"
         self.value = None                                               # WE ONLY SUPPORT INTEGERS RN
+    def code_gen(self):
+        return str(self.value)
+     
     def __repr__(self):
         return f"AST_NODE type = {self.type}, value = {self.value}"
 
@@ -114,6 +115,8 @@ class INT_LITERAL_AST_NODE:
     def __init__(self):
         self.type = "INT_LITERAL_AST_NODE"
         self.value = None
+    def code_gen(self):
+        return str(self.value)
     def __repr__(self):
         return f"AST_NODE type = {self.type}, value = {self.value}"
 
@@ -122,6 +125,10 @@ class ADD_AST_NODE:
         self.type = "ADD_AST_NODE"
         self.lvalue = None
         self.rvalue = None
+    def code_gen(self):
+        left_code = self.lvalue.code_gen()
+        right_code = self.rvalue.code_gen()
+        return f"({left_code} + {right_code})"
     def __repr__(self):
         return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
 
@@ -130,6 +137,10 @@ class MUL_AST_NODE:
         self.type = "MUL_AST_NODE"
         self.lvalue = None
         self.rvalue = None
+    def code_gen(self):
+        left_code = self.lvalue.code_gen()
+        right_code = self.rvalue.code_gen()
+        return f"({left_code} * {right_code})"
     def __repr__(self):
         return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
 
@@ -398,9 +409,7 @@ class Jayko:
     def traversal(self, node):
         # implements post order traversal for the AST
         print(f"PROCESSING NODE OF TYPE {node.__dict__}")
-        return node.code_gen()
-        
-        
+        return node.code_gen() 
 
 
     #####################################################
@@ -456,6 +465,7 @@ if __name__ == "__main__":
 
     # Delete the old output file
     subprocess.run(["rm", "output.c"])
+    subprocess.run(["rm", "output"])
 
     source_file = sys.argv[1] 
     print("source_file", sys.argv[1])
