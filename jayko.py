@@ -359,9 +359,6 @@ class Jayko:
         elif candidate_token_str[0] == "\"" and candidate_token_str[-1] == "\"":
             token_to_add = STRING_LITERAL_TOKEN()
             token_to_add.value = candidate_token_str
-            print(f"[token_dispatch] cts = {candidate_token_str}")
-            print(f"candidate_token_str[0] = {candidate_token_str[0]}")
-            print(f"candidate_token_str[-1] = {candidate_token_str[-1]}")
         else:
             print(f"candidate token str {candidate_token_str} not found")
             print("Exiting...")
