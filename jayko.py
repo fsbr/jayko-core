@@ -14,7 +14,7 @@ class IDENTIFIER_TOKEN:
     def __init__(self):
         self.type = "IDENTIFIER_TOKEN"
         self.value = None
-        self.lbp = 1
+        self.lbp = 0
     def nud(self):
         node = IDENTIFIER_AST_NODE()
         node.value = self.value
@@ -31,7 +31,7 @@ class ASSIGNMENT_TOKEN:
 class INT_LITERAL_TOKEN:
     def __init__(self):
         self.type = "INT_LITERAL_TOKEN"
-        self.lbp = 1 # 1 works
+        self.lbp = 0 # 1 works
         self.value = None
     def nud(self):
         node = INT_LITERAL_AST_NODE()
@@ -43,7 +43,7 @@ class INT_LITERAL_TOKEN:
 class STRING_LITERAL_TOKEN:
     def __init__(self):
         self.type = "STRING_LITERAL_TOKEN"
-        self.lbp = 1 # no idea what it should actually be, so just picking the same as the other literals
+        self.lbp = 0 # no idea what it should actually be, so just picking the same as the other literals
         self.value = None
     def __repr__(self):
         return f"TokenType = {self.type} value = {self.value}"
@@ -61,6 +61,60 @@ class SEMICOLON_TOKEN:
     def __repr__(self):
         return f"TokenType = {self.type}"
 
+class LBRACE_TOKEN:
+    def __init__(self):
+        self.lbp = 0
+        self.type = "LBRACE_TOKEN"
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
+class RBRACE_TOKEN:
+    def __init__(self):
+        self.lbp = 0
+        self.type = "RBRACE_TOKEN"
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
+class IF_TOKEN:
+    def __init__(self):
+        self.type = "IF_TOKEN"
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
+    
+class ELSE_TOKEN:
+    def __init__(self):
+        self.type = "ELSE_TOKEN"
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
+class TRUE_TOKEN:
+    def __init__(self):
+        self.type = "TRUE_TOKEN"
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
+class FALSE_TOKEN:
+    def __init__(self):
+        self.type = "TRUE_TOKEN"
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
+class EQUALITY_TOKEN:
+    def __init__(self):
+        self.type = "EQUALITY_TOKEN"
+        self.lbp = 5
+    def led(self, left, jayko_instance):
+        right = jayko_instance.expr(self.lbp)
+
+        equality_node = EQUALITY_AST_NODE()
+        equality_node.lvalue = left
+        equality_node.rvalue = right
+        return equality_node
+        
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
 class ADD_TOKEN:
     def __init__(self):
         self.type = "ADD_TOKEN"
@@ -73,7 +127,6 @@ class ADD_TOKEN:
         add_node = ADD_AST_NODE() 
         add_node.lvalue = left
         add_node.rvalue = right
-
         return add_node
     def __repr__(self):
         return f"TokenType = {self.type}"
@@ -160,6 +213,20 @@ class STRING_LITERAL_AST_NODE:
     def __repr__(self):
         return f"AST_NODE type = {self.type}, value = {self.value}"
 
+class EQUALITY_AST_NODE:
+    def __init__(self):
+        self.type = "EQUALITY_AST_NODE"
+        self.lvalue = None
+        self.rvalue = None
+    def code_gen(self):
+        print("Generating code for EQUALITY")
+        left_code = self.lvalue.code_gen()
+        right_code = self.rvalue.code_gen()
+        return f"({left_code} == {right_code})"
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
+    
+
 class ADD_AST_NODE:
     def __init__(self):
         self.type = "ADD_AST_NODE"
@@ -238,10 +305,13 @@ class Jayko:
     def read_source(self,input_file):
         # read_source(): takes the source code and puts every character into
         # self.raw_characters 
+        # we will also check for semi colons at the end of each line during this phase
+        # because it is pretty easy to do so.
 
         source = open(input_file)
         for line in source.readlines():
             self.raw_characters+=line.strip("\n")
+
         print("raw, characters")
         print(self.raw_characters)
 
@@ -262,17 +332,12 @@ class Jayko:
                 while self.raw_char_cursor < len(self.raw_characters):
                     c = self.raw_characters[self.raw_char_cursor]
                     if c.isalnum() or c == "_":
-                        print(f"got here with c = {c}")
-                        print(f"buf = {buf}")
                         buf.append(c)
-                        print(f"buf post append = {buf}")
                         self.advance_chars()
                     else:
                         break
 
-                print(f"[tokenize] buf = {buf}")
                 str = "".join(buf)
-                print(f"[tokenize] str = {str} ")
                 self.candidate_tokens.append(self.token_dispatch("".join(buf)))
                 continue
 
@@ -300,7 +365,7 @@ class Jayko:
                     raise SyntaxError("We only support := right now")
 
             # 4) Single-char punctuators/operators
-            if ch in ("*", "+", ";", "%"):
+            if ch in ("*", "+", ";", "%", "{", "}", "="):
                 self.candidate_tokens.append(self.token_dispatch(ch))
                 self.advance_chars()
                 continue
@@ -323,14 +388,26 @@ class Jayko:
 
     def token_dispatch(self, candidate_token_str):
         # this function should look at the candidate_token_str and form the token object
+        # should probably re implement this dispatch using a dict that just matches the token
+        # to the translation within the dictionary
         if candidate_token_str == "let":
             token_to_add = LET_TOKEN()
         elif candidate_token_str == ";":
             token_to_add = SEMICOLON_TOKEN()
+        elif candidate_token_str == "{":
+            token_to_add = LBRACE_TOKEN()
+        elif candidate_token_str == "}":
+            token_to_add = RBRACE_TOKEN()
+        elif candidate_token_str == "if":
+            token_to_add = IF_TOKEN()
+        elif candidate_token_str == "else":
+            token_to_add = ELSE_TOKEN()
         elif candidate_token_str == "*":
             token_to_add = MUL_TOKEN()
         elif candidate_token_str == "+":
             token_to_add = ADD_TOKEN()
+        elif candidate_token_str == "=":
+            token_to_add = EQUALITY_TOKEN()
         elif candidate_token_str == "%":
             token_to_add = MOD_TOKEN()
         elif candidate_token_str == ":=":
@@ -367,15 +444,6 @@ class Jayko:
                 self.root.append(say_subtree)
             elif current_token.type == "EOF_TOKEN":
                 break
-
-
-            # put this after the different grammar structures and
-            # pray it isnt an off by 1... this isn't getting us to the next line of code
-            current_token = self.candidate_tokens[ self.token_cursor ] 
-            print(f"in parse, self.token_cursor = {self.token_cursor}")
-            print(f"in parse, len(self.candidate_tokens)= {len(self.candidate_tokens)}")
-            print(f"in parse, current token is = {current_token}")
-
 
     def parse_say(self):
         # a SAY statement is
@@ -564,17 +632,17 @@ if __name__ == "__main__":
     j.read_source(source_file)
     j.tokenize()
     print(f" candidate_tokens = {j.candidate_tokens}")
-    #j.parse()
+    j.parse()
 
-    #print("PRINTING THE TREES")
-    #for top_level_node in j.root:
-    #    j.print_ast(top_level_node)
-    #j.generate_code()
+    print("PRINTING THE TREES")
+    for top_level_node in j.root:
+        j.print_ast(top_level_node)
+    j.generate_code()
 
 
-    ## Run GCC on the newly created output
-    #print("Compiling...")
-    #subprocess.run(["gcc", "-o", "output", "output.c"])
+    # Run GCC on the newly created output
+    print("Compiling...")
+    subprocess.run(["gcc", "-o", "output", "output.c"])
 
-    #print("\n\nPROGRAM OUTPUT: ")
-    #subprocess.run(["./output"])
+    print("\n\nPROGRAM OUTPUT: ")
+    subprocess.run(["./output"])

@@ -1,2 +1,2 @@
-let x := 24*5;
-say x;
+let z := 3 = 3;
+say z;
