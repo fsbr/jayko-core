@@ -246,93 +246,80 @@ class Jayko:
         print(self.raw_characters)
 
     def tokenize(self):
-        # the tokenize() function takes the list of raw characters and processes them into 
-        # a list of token objects
-        # the hack thing to do rn is to just make sure operators are separated by spaces.
-        print("BEGIN TOKENIZING")
-        candidate_token_str = ""
 
-        while self.raw_char_cursor < (len(self.raw_characters)):        # working
-        #while self.raw_char_cursor < (len(self.raw_characters)):        # working
-            current_char = self.raw_characters[ self.raw_char_cursor ] 
-            next_char = self.peek_chars()
+        while self.raw_char_cursor < len(self.raw_characters):
+            ch = self.raw_characters[ self.raw_char_cursor ]
 
-            # this actually fails for the situation of 4*5, because it goes in here.... im not sure
-            # what the right way to look at it is. 
-            # for now though, it requires all the impelmented binop tokens to be separated by space
-            if current_char.isalnum():              # in this case, it could be an identifier, or a keyword
-                candidate_token_str += current_char
-                while next_char.isalnum():
-                    self.advance_chars()
-                    current_char = self.raw_characters[ self.raw_char_cursor ] 
-                    next_char = self.peek_chars()
-                    candidate_token_str += current_char
-                    #print(f"current_char, next_char, self.raw_char_cursor, self.raw_characters")
-                    #print(f"{current_char}, {next_char}, {self.raw_char_cursor}, {self.raw_characters}")
-                    #print(f"cts: {candidate_token_str}")
-
-                # after this loop is done, the token is finished, so we need to reset the candidate token buffer
-                # TODO: determine if the token is a number, string or identifier
-                # self.candidate_tokens.append(candidate_token_str)
-
-                token_to_add = self.token_dispatch(candidate_token_str)
-                self.candidate_tokens.append(token_to_add)
-
-                candidate_token_str = ""
-            elif ( current_char in ("*", "+", ";", "*", "%") ): 
-                candidate_token_str +=current_char
-                token_to_add = self.token_dispatch(candidate_token_str)
-                self.candidate_tokens.append(token_to_add)
+            # 1) Skip whitespace
+            if ch.isspace():
                 self.advance_chars()
+                continue
 
-                candidate_token_str = ""
+            # 2) Identifiers or Keywords
+            if ch.isalpha() or ch == "_":
+                buf = [ch]
+                self.advance_chars()
+                while self.raw_char_cursor < len(self.raw_characters):
+                    c = self.raw_characters[self.raw_char_cursor]
+                    if c.isalnum() or c == "_":
+                        print(f"got here with c = {c}")
+                        print(f"buf = {buf}")
+                        buf.append(c)
+                        print(f"buf post append = {buf}")
+                        self.advance_chars()
+                    else:
+                        break
 
-                if ( next_char in ("*", "+",";", "*", "%") ): 
-                    raise SyntaxError("We do not support double operators yet")
+                print(f"[tokenize] buf = {buf}")
+                str = "".join(buf)
+                print(f"[tokenize] str = {str} ")
+                self.candidate_tokens.append(self.token_dispatch("".join(buf)))
+                continue
 
-            elif current_char == ":":               # needs to handle :=
-                candidate_token_str +=current_char
-                if next_char == "=":
+            # 3) Numbers (ints for now)
+            if ch.isdigit():
+                buf = [ch]
+                self.advance_chars()
+                while self.raw_char_cursor < len(self.raw_characters) and \
+                      self.raw_characters[self.raw_char_cursor].isdigit():
+                    buf.append(self.raw_characters[self.raw_char_cursor])
                     self.advance_chars()
-                    current_char = self.raw_characters[ self.raw_char_cursor ] 
-                    next_char = self.peek_chars()
-                    candidate_token_str += current_char
-                    #print(f"in the : part {candidate_token_str}")
-                    
+
+                self.candidate_tokens.append(self.token_dispatch("".join(buf)))
+                continue
+            # 3) Two character operator :=
+            if ch == ":":
+                # now we lookahead but we dont move yet
+                nx = self.peek_chars()
+                if nx == "=":
+                    self.advance_chars()                # consume ":"
+                    self.advance_chars()                # consume "="
+                    self.candidate_tokens.append(self.token_dispatch(":="))
+                    continue
                 else:
                     raise SyntaxError("We only support := right now")
 
-                token_to_add = self.token_dispatch(candidate_token_str)
-                self.candidate_tokens.append(token_to_add)
-
-                candidate_token_str = ""
-
-            elif current_char == "\"":
-                candidate_token_str += current_char
+            # 4) Single-char punctuators/operators
+            if ch in ("*", "+", ";", "%"):
+                self.candidate_tokens.append(self.token_dispatch(ch))
                 self.advance_chars()
-                current_char = self.raw_characters [ self.raw_char_cursor ]
-                while current_char != "\"":
-                    candidate_token_str += current_char
+                continue
+
+            # 5) Strings
+            if ch == '"':
+                buf = ['"']
+                self.advance_chars()
+                while self.raw_char_cursor < len(self.raw_characters):
+                    c = self.raw_characters[self.raw_char_cursor]
+                    buf.append(c)
                     self.advance_chars()
-                    current_char = self.raw_characters [ self.raw_char_cursor ]
-                candidate_token_str+= current_char
-                print(f"candidate_token_str {candidate_token_str}")
-                token_to_add = self.token_dispatch(candidate_token_str)
-                self.candidate_tokens.append(token_to_add)
-            if next_char == ";":
-                # we have to add the semi colon token, to make it easier to parse statements
-                print("DO WE EVER DO THE NEXT CHAR VERSION")
-                self.advance_chars()
-                candidate_token_str = next_char
-                token_to_add = self.token_dispatch(candidate_token_str)
-                self.candidate_tokens.append(token_to_add)
-                candidate_token_str = ""
+                    if c == '"':
+                        break
+                self.candidate_tokens.append(self.token_dispatch("".join(buf)))
+                continue
 
-            # WRT to 4*5 failing, and "-" not being seen by the lexer, the reason is we don't match
-            # every situation.  Haskell would never...
-            self.advance_chars()
-        self.candidate_tokens.append(EOF_TOKEN())
-        print("END TOKENIZING!\n\n")
+            # 6) Unknown Char
+            raise SyntaxError(f"Unexpected character: {ch}")
 
     def token_dispatch(self, candidate_token_str):
         # this function should look at the candidate_token_str and form the token object
@@ -577,17 +564,17 @@ if __name__ == "__main__":
     j.read_source(source_file)
     j.tokenize()
     print(f" candidate_tokens = {j.candidate_tokens}")
-    j.parse()
+    #j.parse()
 
-    print("PRINTING THE TREES")
-    for top_level_node in j.root:
-        j.print_ast(top_level_node)
-    j.generate_code()
+    #print("PRINTING THE TREES")
+    #for top_level_node in j.root:
+    #    j.print_ast(top_level_node)
+    #j.generate_code()
 
 
-    # Run GCC on the newly created output
-    print("Compiling...")
-    subprocess.run(["gcc", "-o", "output", "output.c"])
+    ## Run GCC on the newly created output
+    #print("Compiling...")
+    #subprocess.run(["gcc", "-o", "output", "output.c"])
 
-    print("\n\nPROGRAM OUTPUT: ")
-    subprocess.run(["./output"])
+    #print("\n\nPROGRAM OUTPUT: ")
+    #subprocess.run(["./output"])
