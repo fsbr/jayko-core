@@ -281,6 +281,15 @@ class SAY_AST_NODE:
     def __repr__(self):
         return f"AST_NODE type = {self.type}, value = {self.value}"
 
+class BLOCK_AST_NODE:
+    def __init__(self):
+        self.type = "BLOCK_AST_NODE"
+        self.statements = []
+    def code_gen(self):
+        raise NotImplementedError("Support for block statements doesn't exist yet but it will soon")
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}, with {len(self.statements)} statements in it"
+
 
 
 ###############################################################################
@@ -503,6 +512,11 @@ class Jayko:
         print("\n\n\n")
 
         return assignment_node_to_add
+
+    def parse_if(self):
+        # an IF statement is 
+        # if <expr> 
+        raise NotImplementedError("We haven't incorporated if statements yet!")
 
     def expr(self, rbp = 0):
         print(f"[expr] rbp={rbp}  peek={self.peek_tokens().type}  peek.lbp={getattr(self.peek_tokens(), 'lbp', None)}  cursor={self.token_cursor}")
