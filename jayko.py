@@ -294,6 +294,20 @@ class BLOCK_AST_NODE:
     def __repr__(self):
         return f"AST_NODE type = {self.type}, with {len(self.statements)} statements in it"
 
+class IF_AST_NODE:
+    def __init__(self):
+        self.type = "IF_AST_NODE"
+        self.if_condition = None
+        self.then_block = None
+        self.else_block = None
+    def code_gen(self):
+        cond = self.if_condition.code_gen()
+        then_block = self.then_block.code_gen()
+
+        return f" if ({cond}) {{ {then_block} }} "
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}, with if_condition = {self.if_condition}, then_block = {self.then_block}, else_block = {self.else_block}"
+
 
 
 ###############################################################################
@@ -547,10 +561,15 @@ class Jayko:
 
     def parse_if(self):
         # an IF statement is 
-        # if <expr> 
+        # if <expr>  
         self.expect("IF_TOKEN")
-        value 
-        raise NotImplementedError("We haven't incorporated if statements yet!")
+        if_condition = self.expr()
+        then_block = self.parse_block()
+         
+        if_node_to_add = IF_AST_NODE()
+        if_node_to_add.if_condition = if_condition
+        if_node_to_add.then_block = then_block
+        return if_node_to_add
 
     def expr(self, rbp = 0):
         print(f"[expr] rbp={rbp}  peek={self.peek_tokens().type}  peek.lbp={getattr(self.peek_tokens(), 'lbp', None)}  cursor={self.token_cursor}")
@@ -695,8 +714,8 @@ if __name__ == "__main__":
 
 
     ## Run GCC on the newly created output
-    #print("Compiling...")
-    #subprocess.run(["gcc", "-o", "output", "output.c"])
+    print("Compiling...")
+    subprocess.run(["gcc", "-o", "output", "output.c"])
 
-    #print("\n\nPROGRAM OUTPUT: ")
-    #subprocess.run(["./output"])
+    print("\n\nPROGRAM OUTPUT: ")
+    subprocess.run(["./output"])
