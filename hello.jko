@@ -1,5 +1,7 @@
+{
 let z := 3 = 3;
 say z;
 let i := 4 = 3;
 say "i is";
 say i;
+}

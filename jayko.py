@@ -286,7 +286,11 @@ class BLOCK_AST_NODE:
         self.type = "BLOCK_AST_NODE"
         self.statements = []
     def code_gen(self):
-        raise NotImplementedError("Support for block statements doesn't exist yet but it will soon")
+        buf = []
+        for ast_node in self.statements:
+            buf.append(f"{ast_node.code_gen()}")
+        return "".join(buf)
+
     def __repr__(self):
         return f"AST_NODE type = {self.type}, with {len(self.statements)} statements in it"
 
@@ -441,18 +445,49 @@ class Jayko:
         return token_to_add
 
     def parse(self):
+        while self.token_cursor < len(self.candidate_tokens):
+            if self.peek_tokens().type == "EOF_TOKEN":
+                break
+            statement = self.parse_statement()
+            self.root.append(statement)
+
+    def parse_statement(self):
         # Parsing should take the list of self.candidate_tokens
         # and output the AST
         while self.token_cursor < len(self.candidate_tokens):
             current_token = self.candidate_tokens[ self.token_cursor ]
             if current_token.type == "LET_TOKEN":
                 let_subtree = self.parse_let()
-                self.root.append(let_subtree)
+                return let_subtree
             elif current_token.type == "SAY_TOKEN":
                 say_subtree = self.parse_say()
-                self.root.append(say_subtree)
+                return say_subtree
+            elif current_token.type == "IF_TOKEN":
+                if_subtree = self.parse_if()
+                return if_subtree
+            elif current_token.type == "LBRACE_TOKEN":
+                block_subtree = self.parse_block()
+                return block_subtree
+                printf(f"[parse], block_subtree = {block_subtree}")
             elif current_token.type == "EOF_TOKEN":
                 break
+            else:
+                print(f"We do not know how to process the token {current_token}")
+                quit()
+
+
+    def parse_block(self):
+        print("[parse_block], entered")
+        self.expect("LBRACE_TOKEN")
+        statements = []
+        while not self.match("RBRACE_TOKEN"):
+            print(f"[parse_block] self.candidate_tokens[ self.token_cursor ]")
+            statement = self.parse_statement()
+            if statement:
+                statements.append(statement)
+        node = BLOCK_AST_NODE()
+        node.statements = statements
+        return node
 
     def parse_say(self):
         # a SAY statement is
@@ -469,7 +504,6 @@ class Jayko:
         # logic look a LOT better 
         t = self.advance_tokens() # we would have normally called this in expect
         if (t.type == "STRING_LITERAL_TOKEN" or t.type == "IDENTIFIER_TOKEN"):
-            print(f"self.expected_token() {self.expected_token()}")
             identifier = self.expected_token().value 
 
             say_node = SAY_AST_NODE()
@@ -477,8 +511,7 @@ class Jayko:
             say_node.route = t.type
 
         else:
-            print(f"[parse_say] t.type = {t.type}")
-            raise SyntaxError("Encountered an Incorrect Node Type")
+            raise SyntaxError("[parse_say] Encountered an Incorrect Node Type")
 
         self.expect("SEMICOLON_TOKEN")
         return say_node
@@ -501,7 +534,6 @@ class Jayko:
         print("\nbefore self.expr() is first called")
         print(f"current token = {self.candidate_tokens[ self.token_cursor ]}\n")
         value = self.expr()
-        print(f"DEEP FUCKING VALUE {value}")
 
         self.expect("SEMICOLON_TOKEN")
 
@@ -516,6 +548,8 @@ class Jayko:
     def parse_if(self):
         # an IF statement is 
         # if <expr> 
+        self.expect("IF_TOKEN")
+        value 
         raise NotImplementedError("We haven't incorporated if statements yet!")
 
     def expr(self, rbp = 0):
@@ -618,7 +652,13 @@ class Jayko:
         t = self.advance_tokens()
         if t.type != token_type:
             raise SyntaxError(f"Expected {token_type} got {t.type}")
-        
+
+    def match(self, token_type):
+        if (self.peek_tokens().type == token_type):
+            self.advance_tokens()
+            return True
+        return False
+     
     ########################################################################
     # DEBUGGING
     ########################################################################
@@ -648,15 +688,15 @@ if __name__ == "__main__":
     print(f" candidate_tokens = {j.candidate_tokens}")
     j.parse()
 
-    print("PRINTING THE TREES")
-    for top_level_node in j.root:
-        j.print_ast(top_level_node)
+    #print("PRINTING THE TREES")
+    #for top_level_node in j.root:
+    #    j.print_ast(top_level_node)
     j.generate_code()
 
 
-    # Run GCC on the newly created output
-    print("Compiling...")
-    subprocess.run(["gcc", "-o", "output", "output.c"])
+    ## Run GCC on the newly created output
+    #print("Compiling...")
+    #subprocess.run(["gcc", "-o", "output", "output.c"])
 
-    print("\n\nPROGRAM OUTPUT: ")
-    subprocess.run(["./output"])
+    #print("\n\nPROGRAM OUTPUT: ")
+    #subprocess.run(["./output"])
