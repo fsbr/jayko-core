@@ -56,7 +56,7 @@ class SAY_TOKEN:
         
 class SEMICOLON_TOKEN:
     def __init__(self):
-        self.lbp = 0
+        self.lbp = 0 
         self.type = "SEMICOLON_TOKEN"
     def __repr__(self):
         return f"TokenType = {self.type}"
@@ -81,9 +81,9 @@ class IF_TOKEN:
     def __repr__(self):
         return f"TokenType = {self.type}"
 
-class WHILE_TOKEN:
+class LOOP_TOKEN:
     def __init__(self):
-        self.type = "WHILE_TOKEN"
+        self.type = "LOOP_TOKEN"
     def __repr__(self):
         return f"TokenType = {self.type}"
     
@@ -119,6 +119,22 @@ class EQUALITY_TOKEN:
         
     def __repr__(self):
         return f"TokenType = {self.type}"
+
+class LESSTHAN_TOKEN:
+    def __init__(self):
+        self.type = "LESSTHAN_TOKEN"
+        self.lbp = 6
+    def led(self, left, jayko_instance):
+        right = jayko_instance.expr(self.lbp)
+
+        equality_node = LESSTHAN_AST_NODE()
+        equality_node.lvalue = left
+        equality_node.rvalue = right
+        return equality_node
+        
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+    
 
 class ADD_TOKEN:
     def __init__(self):
@@ -178,9 +194,9 @@ class EOF_TOKEN:
 ###############################################################################
 #  AST NODES SHOULD ALSO GO IN THEIR OWN FILE SOME DAY                        #
 ###############################################################################
-class ASSIGNMENT_AST_NODE:
+class LET_AST_NODE:
     def __init__(self):
-        self.type = "ASSIGNMENT_AST_NODE"
+        self.type = "LET_AST_NODE"
         self.lvalue = None                  # the variable name
         self.rvalue = None                  # the root of the subtree forming the expression to be stored in lvalue
     def code_gen(self):
@@ -189,6 +205,21 @@ class ASSIGNMENT_AST_NODE:
         return f"\tint {identifier} = {rhs};\n"
     def __repr__(self):
         return f"AST_NODE type = {self.type} value = {self.lvalue} "
+
+# we absolutely need to incorporate the difference between a decaration and an assignemnt
+class ASSIGNMENT_AST_NODE:
+    def __init__(self):
+        self.type = "ASSIGNMENT_AST_NODE"
+        self.lvalue = None
+        self.rvalue = None
+    def code_gen(self):
+        rhs = self.rvalue.code_gen()
+        identifier = self.lvalue.code_gen()
+        return f"\t {identifier } = {rhs};\n"
+    def __repr__(self):
+        return f"AST_NODE type = {self.type} value = {self.lvalue} "
+
+
 
 class IDENTIFIER_AST_NODE:
     def __init__(self):
@@ -228,6 +259,19 @@ class EQUALITY_AST_NODE:
         left_code = self.lvalue.code_gen()
         right_code = self.rvalue.code_gen()
         return f"({left_code} == {right_code})"
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
+
+class LESSTHAN_AST_NODE:
+    def __init__(self):
+        self.type = "LESSTHAN_AST_NODE"
+        self.lvalue = None
+        self.rvalue = None
+    def code_gen(self):
+        print("Generating code for EQUALITY")
+        left_code = self.lvalue.code_gen()
+        right_code = self.rvalue.code_gen()
+        return f"({left_code} < {right_code})"
     def __repr__(self):
         return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
     
@@ -308,13 +352,25 @@ class IF_AST_NODE:
     def code_gen(self):
         cond = self.if_condition.code_gen()
         then_block = self.then_block.code_gen()
-        else_block = self.else_block.code_gen()
         if self.else_block != None:
+            else_block = self.else_block.code_gen()
             return f"if ( {cond} ){{ {then_block} }} else {{ {else_block} }}"
 
         return f" if ({cond}) {{ {then_block} }} "
     def __repr__(self):
         return f"AST_NODE type = {self.type}, with if_condition = {self.if_condition}, then_block = {self.then_block}, else_block = {self.else_block}"
+
+class LOOP_AST_NODE:
+    def __init__(self):
+        self.type = "LOOP_AST_NODE"
+        self.loop_condition = None 
+        self.loop_block = None
+    def code_gen(self):
+        cond = self.loop_condition.code_gen()
+        loop_block = self.loop_block.code_gen()
+        return f"while ( {cond}) {{ {loop_block} }} "
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}, with loop_condition = {self.loop_condition}, and loop_block = {self.loop_block}" 
 
 
 
@@ -400,7 +456,7 @@ class Jayko:
                     raise SyntaxError("We only support := right now")
 
             # 4) Single-char punctuators/operators
-            if ch in ("*", "+", ";", "%", "{", "}", "="):
+            if ch in ("*", "+", ";", "%", "{", "}", "=", "<"):
                 self.candidate_tokens.append(self.token_dispatch(ch))
                 self.advance_chars()
                 continue
@@ -427,6 +483,8 @@ class Jayko:
         # to the translation within the dictionary
         if candidate_token_str == "let":
             token_to_add = LET_TOKEN()
+        elif candidate_token_str == "loop":
+            token_to_add = LOOP_TOKEN()
         elif candidate_token_str == ";":
             token_to_add = SEMICOLON_TOKEN()
         elif candidate_token_str == "{":
@@ -443,6 +501,8 @@ class Jayko:
             token_to_add = ADD_TOKEN()
         elif candidate_token_str == "=":
             token_to_add = EQUALITY_TOKEN()
+        elif candidate_token_str == "<":
+            token_to_add = LESSTHAN_TOKEN()
         elif candidate_token_str == "%":
             token_to_add = MOD_TOKEN()
         elif candidate_token_str == ":=":
@@ -481,12 +541,27 @@ class Jayko:
             if current_token.type == "LET_TOKEN":
                 let_subtree = self.parse_let()
                 return let_subtree
+            elif current_token.type == "IDENTIFIER_TOKEN":
+                # if we see an identifier token at the start of a statment theres a couple things
+                # that could be happening
+                nx = self.candidate_tokens[ self.token_cursor + 1]
+                print(f"[parse_statemetn] nx = {nx}")
+                if nx.type == "ASSIGNMENT_TOKEN":
+                    print(f"[parse_statement] nx.type == ASSIGNMENT_TOKEN")
+                    assignment_subtree = self.parse_assignment()
+                else: #nx.type == "EQUALITY_TOKEN":
+                    print(f"[parse_statement] else")
+                    assignment_subtree = self.expr()
+                return assignment_subtree
             elif current_token.type == "SAY_TOKEN":
                 say_subtree = self.parse_say()
                 return say_subtree
             elif current_token.type == "IF_TOKEN":
                 if_subtree = self.parse_if()
                 return if_subtree
+            elif current_token.type == "LOOP_TOKEN":
+                loop_subtree = self.parse_loop()
+                return loop_subtree
             elif current_token.type == "LBRACE_TOKEN":
                 block_subtree = self.parse_block()
                 return block_subtree
@@ -496,7 +571,6 @@ class Jayko:
             else:
                 print(f"We do not know how to process the token {current_token}")
                 quit()
-
 
     def parse_block(self):
         print("[parse_block], entered")
@@ -560,6 +634,28 @@ class Jayko:
         self.expect("SEMICOLON_TOKEN")
 
         # assume for now that assignment node is the head of the subtree
+        let_node_to_add = LET_AST_NODE()
+        let_node_to_add.lvalue = id_node_to_add
+        let_node_to_add.rvalue = value
+        print("\n\n\n")
+
+        return let_node_to_add
+    
+    def parse_assignment(self):
+        # an ASSIGNMENT statement is 
+        # <identifier> ":=" <expr> ";"
+        self.expect("IDENTIFIER_TOKEN")
+        identifier = self.expected_token().value 
+        id_node_to_add = IDENTIFIER_AST_NODE()
+        id_node_to_add.value = identifier
+
+        self.expect("ASSIGNMENT_TOKEN")
+
+        value = self.expr()
+
+        self.expect("SEMICOLON_TOKEN")
+
+        # assume for now that assignment node is the head of the subtree
         assignment_node_to_add = ASSIGNMENT_AST_NODE()
         assignment_node_to_add.lvalue = id_node_to_add
         assignment_node_to_add.rvalue = value
@@ -569,7 +665,8 @@ class Jayko:
 
     def parse_if(self):
         # an IF statement is 
-        # if <expr>  
+        # if <expr> <block> else? if? <block>
+       
         self.expect("IF_TOKEN")
         if_condition = self.expr()
         then_block = self.parse_block()
@@ -587,6 +684,18 @@ class Jayko:
         if_node_to_add.then_block = then_block
         if_node_to_add.else_block = else_block
         return if_node_to_add
+
+    def parse_loop(self):
+        # a LOOP statement is 
+        # LOOP expr block
+        self.expect("LOOP_TOKEN")
+        loop_condition = self.expr()
+        loop_block = self.parse_block()
+
+        loop_node_to_add = LOOP_AST_NODE()
+        loop_node_to_add.loop_condition = loop_condition
+        loop_node_to_add.loop_block = loop_block
+        return loop_node_to_add
 
     def expr(self, rbp = 0):
         print(f"[expr] rbp={rbp}  peek={self.peek_tokens().type}  peek.lbp={getattr(self.peek_tokens(), 'lbp', None)}  cursor={self.token_cursor}")
