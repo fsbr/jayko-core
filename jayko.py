@@ -81,6 +81,11 @@ class IF_TOKEN:
     def __repr__(self):
         return f"TokenType = {self.type}"
 
+class WHILE_TOKEN:
+    def __init__(self):
+        self.type = "WHILE_TOKEN"
+    def __repr__(self):
+        return f"TokenType = {self.type}"
     
 class ELSE_TOKEN:
     def __init__(self):
@@ -303,6 +308,9 @@ class IF_AST_NODE:
     def code_gen(self):
         cond = self.if_condition.code_gen()
         then_block = self.then_block.code_gen()
+        else_block = self.else_block.code_gen()
+        if self.else_block != None:
+            return f"if ( {cond} ){{ {then_block} }} else {{ {else_block} }}"
 
         return f" if ({cond}) {{ {then_block} }} "
     def __repr__(self):
@@ -565,10 +573,19 @@ class Jayko:
         self.expect("IF_TOKEN")
         if_condition = self.expr()
         then_block = self.parse_block()
+
+        else_block = None
+        if self.peek_tokens().type == "ELSE_TOKEN":
+            self.advance_tokens()   # consume "else"
+            if self.peek_tokens().type == "IF_TOKEN":
+                else_block = self.parse_if()
+            else:
+                else_block = self.parse_block()
          
         if_node_to_add = IF_AST_NODE()
         if_node_to_add.if_condition = if_condition
         if_node_to_add.then_block = then_block
+        if_node_to_add.else_block = else_block
         return if_node_to_add
 
     def expr(self, rbp = 0):

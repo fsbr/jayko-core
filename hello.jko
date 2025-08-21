@@ -1,4 +1,9 @@
-let x := 3;
-if x = 4 {
+let x := 5;
+if x % 3 =  0 {
     say "hello";
+} else if x = 4 {
+    say "goodbye";
+} else {
+    say "wow";
 }
+
