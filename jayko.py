@@ -120,17 +120,32 @@ class EQUALITY_TOKEN:
     def __repr__(self):
         return f"TokenType = {self.type}"
 
-class LESSTHAN_TOKEN:
+class LT_TOKEN:
     def __init__(self):
-        self.type = "LESSTHAN_TOKEN"
+        self.type = "LT_TOKEN"
         self.lbp = 6
     def led(self, left, jayko_instance):
         right = jayko_instance.expr(self.lbp)
 
-        equality_node = LESSTHAN_AST_NODE()
-        equality_node.lvalue = left
-        equality_node.rvalue = right
-        return equality_node
+        lt_node = LT_AST_NODE()
+        lt_node.lvalue = left
+        lt_node.rvalue = right
+        return lt_node
+        
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
+class LEQ_TOKEN:
+    def __init__(self):
+        self.type = "LEQ_TOKEN"
+        self.lbp = 6
+    def led(self, left, jayko_instance):
+        right = jayko_instance.expr(self.lbp)
+
+        leq_node = LEQ_AST_NODE()
+        leq_node.lvalue = left
+        leq_node.rvalue = right
+        return leq_node
         
     def __repr__(self):
         return f"TokenType = {self.type}"
@@ -262,16 +277,27 @@ class EQUALITY_AST_NODE:
     def __repr__(self):
         return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
 
-class LESSTHAN_AST_NODE:
+class LT_AST_NODE:
     def __init__(self):
-        self.type = "LESSTHAN_AST_NODE"
+        self.type = "LT_AST_NODE"
         self.lvalue = None
         self.rvalue = None
     def code_gen(self):
-        print("Generating code for EQUALITY")
         left_code = self.lvalue.code_gen()
         right_code = self.rvalue.code_gen()
         return f"({left_code} < {right_code})"
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
+
+class LEQ_AST_NODE:
+    def __init__(self):
+        self.type = "LT_AST_NODE"
+        self.lvalue = None
+        self.rvalue = None
+    def code_gen(self):
+        left_code = self.lvalue.code_gen()
+        right_code = self.rvalue.code_gen()
+        return f"({left_code} <= {right_code})"
     def __repr__(self):
         return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
     
@@ -443,23 +469,35 @@ class Jayko:
 
                 self.candidate_tokens.append(self.token_dispatch("".join(buf)))
                 continue
+
             # 3) Two character operator :=
             if ch == ":":
                 # now we lookahead but we dont move yet
                 nx = self.peek_chars()
                 if nx == "=":
-                    self.advance_chars()                # consume ":"
+                    self.advance_chars()                # consume ":" 
                     self.advance_chars()                # consume "="
                     self.candidate_tokens.append(self.token_dispatch(":="))
                     continue
                 else:
                     raise SyntaxError("We only support := right now")
 
+            if ch == "<":
+                nx = self.peek_chars()
+                if nx == "=":
+                    self.advance_chars()                # consume "<"
+                    self.advance_chars()                # consume "="
+                    self.candidate_tokens.append(self.token_dispatch("<="))
+                    continue
+                    
+
+
             # 4) Single-char punctuators/operators
             if ch in ("*", "+", ";", "%", "{", "}", "=", "<"):
                 self.candidate_tokens.append(self.token_dispatch(ch))
                 self.advance_chars()
                 continue
+
 
             # 5) Strings
             if ch == '"':
@@ -502,7 +540,9 @@ class Jayko:
         elif candidate_token_str == "=":
             token_to_add = EQUALITY_TOKEN()
         elif candidate_token_str == "<":
-            token_to_add = LESSTHAN_TOKEN()
+            token_to_add = LT_TOKEN()
+        elif candidate_token_str == "<=":
+            token_to_add = LEQ_TOKEN()
         elif candidate_token_str == "%":
             token_to_add = MOD_TOKEN()
         elif candidate_token_str == ":=":
@@ -541,17 +581,21 @@ class Jayko:
             if current_token.type == "LET_TOKEN":
                 let_subtree = self.parse_let()
                 return let_subtree
+            #elif current_token.type == "IDENTIFIER_TOKEN":
+            #    # if we see an identifier token at the start of a statment theres a couple things
+            #    # that could be happening
+            #    nx = self.candidate_tokens[ self.token_cursor + 1]
+            #    print(f"[parse_statemetn] nx = {nx}")
+            #    if nx.type == "ASSIGNMENT_TOKEN":
+            #        print(f"[parse_statement] nx.type == ASSIGNMENT_TOKEN")
+            #        assignment_subtree = self.parse_assignment()
+            #    else: #nx.type == "EQUALITY_TOKEN":
+            #        print(f"[parse_statement] else")
+            #        assignment_subtree = self.expr()
+            #    return assignment_subtree
+
             elif current_token.type == "IDENTIFIER_TOKEN":
-                # if we see an identifier token at the start of a statment theres a couple things
-                # that could be happening
-                nx = self.candidate_tokens[ self.token_cursor + 1]
-                print(f"[parse_statemetn] nx = {nx}")
-                if nx.type == "ASSIGNMENT_TOKEN":
-                    print(f"[parse_statement] nx.type == ASSIGNMENT_TOKEN")
-                    assignment_subtree = self.parse_assignment()
-                else: #nx.type == "EQUALITY_TOKEN":
-                    print(f"[parse_statement] else")
-                    assignment_subtree = self.expr()
+                assignment_subtree = self.parse_assignment()
                 return assignment_subtree
             elif current_token.type == "SAY_TOKEN":
                 say_subtree = self.parse_say()
