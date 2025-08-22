@@ -1,0 +1,9 @@
+let b := 720;
+let a := 120;
+
+if a > b {
+    a := a - b;
+} else {
+    b := b - a;
+}
+say a;

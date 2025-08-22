@@ -135,6 +135,21 @@ class LT_TOKEN:
     def __repr__(self):
         return f"TokenType = {self.type}"
 
+class GT_TOKEN:
+    def __init__(self):
+        self.type = "GT_TOKEN"
+        self.lbp = 6
+    def led(self, left, jayko_instance):
+        right = jayko_instance.expr(self.lbp)
+
+        lt_node = GT_AST_NODE()
+        lt_node.lvalue = left
+        lt_node.rvalue = right
+        return lt_node
+        
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
 class LEQ_TOKEN:
     def __init__(self):
         self.type = "LEQ_TOKEN"
@@ -158,6 +173,20 @@ class ADD_TOKEN:
     def led(self, left, jayko_instance):
         print("ADD_TOKEN.led")
         print(f"[led {self.type}] lbp={self.lbp}  cursor={jayko_instance.token_cursor}")
+        right = jayko_instance.expr(self.lbp)
+
+        add_node = ADD_AST_NODE() 
+        add_node.lvalue = left
+        add_node.rvalue = right
+        return add_node
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
+class SUB_TOKEN:
+    def __init__(self):
+        self.type = "SUB_TOKEN"
+        self.lbp = 10
+    def led(self, left, jayko_instance):
         right = jayko_instance.expr(self.lbp)
 
         add_node = ADD_AST_NODE() 
@@ -289,6 +318,18 @@ class LT_AST_NODE:
     def __repr__(self):
         return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
 
+class GT_AST_NODE:
+    def __init__(self):
+        self.type = "GT_AST_NODE"
+        self.lvalue = None
+        self.rvalue = None
+    def code_gen(self):
+        left_code = self.lvalue.code_gen()
+        right_code = self.rvalue.code_gen()
+        return f"({left_code} > {right_code})"
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
+
 class LEQ_AST_NODE:
     def __init__(self):
         self.type = "LT_AST_NODE"
@@ -312,6 +353,18 @@ class ADD_AST_NODE:
         left_code = self.lvalue.code_gen()
         right_code = self.rvalue.code_gen()
         return f"({left_code} + {right_code})"
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
+
+class SUB_AST_NODE:
+    def __init__(self):
+        self.type = "SUB_AST_NODE"
+        self.lvalue = None
+        self.rvalue = None
+    def code_gen(self):
+        left_code = self.lvalue.code_gen()
+        right_code = self.rvalue.code_gen()
+        return f"({left_code} - {right_code})"
     def __repr__(self):
         return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
 
@@ -347,7 +400,7 @@ class SAY_AST_NODE:
         self.value = None
         self.route = None                               # route is to dispatch to the correct code generation
     def code_gen(self):
-        if self.route == "IDENTIFIER_TOKEN":                         # this feels like a hack, because we are 
+        if self.route == "IDENTIFIER_TOKEN" or self.route == "INT_LITERAL_TOKEN":                         # this feels like a hack, because we are 
             return f"\tprintf( \"%d\\n\", {self.value} );\n"    # assuming depth 1 expressions.
         if self.route == "STRING_LITERAL_TOKEN":
             l1 = f"\tchar str[] = {self.value};\n"
@@ -492,8 +545,9 @@ class Jayko:
                     
 
 
+
             # 4) Single-char punctuators/operators
-            if ch in ("*", "+", ";", "%", "{", "}", "=", "<"):
+            if ch in ("*", "+", "-", ";", "%", "{", "}", "=", "<", ">"):
                 self.candidate_tokens.append(self.token_dispatch(ch))
                 self.advance_chars()
                 continue
@@ -537,12 +591,16 @@ class Jayko:
             token_to_add = MUL_TOKEN()
         elif candidate_token_str == "+":
             token_to_add = ADD_TOKEN()
+        elif candidate_token_str == "-":
+            token_to_add = SUB_TOKEN()
         elif candidate_token_str == "=":
             token_to_add = EQUALITY_TOKEN()
         elif candidate_token_str == "<":
             token_to_add = LT_TOKEN()
         elif candidate_token_str == "<=":
             token_to_add = LEQ_TOKEN()
+        elif candidate_token_str == ">":
+            token_to_add = GT_TOKEN()
         elif candidate_token_str == "%":
             token_to_add = MOD_TOKEN()
         elif candidate_token_str == ":=":
@@ -643,7 +701,7 @@ class Jayko:
         # feel like figuring it out right now, but I should do it because it makes the parsing
         # logic look a LOT better 
         t = self.advance_tokens() # we would have normally called this in expect
-        if (t.type == "STRING_LITERAL_TOKEN" or t.type == "IDENTIFIER_TOKEN"):
+        if (t.type == "STRING_LITERAL_TOKEN" or t.type == "IDENTIFIER_TOKEN" or t.type == "INT_LITERAL_TOKEN"):
             identifier = self.expected_token().value 
 
             say_node = SAY_AST_NODE()
@@ -651,7 +709,8 @@ class Jayko:
             say_node.route = t.type
 
         else:
-            raise SyntaxError("[parse_say] Encountered an Incorrect Node Type")
+            raise SyntaxError(f"[parse_say] Encountered an Incorrect Node Type {t.type}")
+            
 
         self.expect("SEMICOLON_TOKEN")
         return say_node
