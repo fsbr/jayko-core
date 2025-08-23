@@ -433,9 +433,9 @@ class IF_AST_NODE:
         then_block = self.then_block.code_gen()
         if self.else_block != None:
             else_block = self.else_block.code_gen()
-            return f"if ( {cond} ){{ {then_block} }} else {{ {else_block} }}"
+            return f"\tif ( {cond} )\n \t{{ {then_block} \n \t}} else {{ \n \t {else_block} \t}}\n"
 
-        return f" if ({cond}) {{ {then_block} }} "
+        return f"\tif ({cond}) \n \t{{ {then_block} }} "
     def __repr__(self):
         return f"AST_NODE type = {self.type}, with if_condition = {self.if_condition}, then_block = {self.then_block}, else_block = {self.else_block}"
 
@@ -524,16 +524,16 @@ class Jayko:
                 continue
 
             # 3) Two character operator :=
-            if ch == ":":
+            if ch == "=":
                 # now we lookahead but we dont move yet
                 nx = self.peek_chars()
                 if nx == "=":
                     self.advance_chars()                # consume ":" 
                     self.advance_chars()                # consume "="
-                    self.candidate_tokens.append(self.token_dispatch(":="))
+                    self.candidate_tokens.append(self.token_dispatch("=="))
                     continue
-                else:
-                    raise SyntaxError("We only support := right now")
+                #else:
+                #    raise SyntaxError("We only support := right now")
 
             if ch == "<":
                 nx = self.peek_chars()
@@ -593,7 +593,7 @@ class Jayko:
             token_to_add = ADD_TOKEN()
         elif candidate_token_str == "-":
             token_to_add = SUB_TOKEN()
-        elif candidate_token_str == "=":
+        elif candidate_token_str == "==":
             token_to_add = EQUALITY_TOKEN()
         elif candidate_token_str == "<":
             token_to_add = LT_TOKEN()
@@ -603,7 +603,7 @@ class Jayko:
             token_to_add = GT_TOKEN()
         elif candidate_token_str == "%":
             token_to_add = MOD_TOKEN()
-        elif candidate_token_str == ":=":
+        elif candidate_token_str == "=":
             token_to_add = ASSIGNMENT_TOKEN()
         elif candidate_token_str == "say":
             token_to_add = SAY_TOKEN()
