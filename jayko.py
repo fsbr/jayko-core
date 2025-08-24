@@ -1,4 +1,4 @@
-# FRESH START FOR JAYKO
+#  FRESH START FOR JAYKO
 import sys, subprocess
 
 ####################################################################
@@ -72,6 +72,26 @@ class RBRACE_TOKEN:
     def __init__(self):
         self.lbp = 0
         self.type = "RBRACE_TOKEN"
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
+
+class LPAREN_TOKEN:
+    def __init__(self,):
+        self.type = "LPAREN_TOKEN"
+        #parse inside parenthesis
+    def nud(self, jayko_instance):
+        expr_node = jayko_instance.expr(0)
+        jayko_instance.expect("RPAREN_TOKEN")
+        return expr_node
+
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
+class RPAREN_TOKEN:
+    def __init__(self):
+        self.type = "RPAREN_TOKEN"
+        self.lbp = 0
     def __repr__(self):
         return f"TokenType = {self.type}"
 
@@ -189,7 +209,7 @@ class SUB_TOKEN:
     def led(self, left, jayko_instance):
         right = jayko_instance.expr(self.lbp)
 
-        add_node = ADD_AST_NODE() 
+        add_node = SUB_AST_NODE() 
         add_node.lvalue = left
         add_node.rvalue = right
         return add_node
@@ -547,7 +567,7 @@ class Jayko:
 
 
             # 4) Single-char punctuators/operators
-            if ch in ("*", "+", "-", ";", "%", "{", "}", "=", "<", ">"):
+            if ch in ("*", "+", "-", ";", "%", "{", "}", "=", "<", ">", "(",")"):
                 self.candidate_tokens.append(self.token_dispatch(ch))
                 self.advance_chars()
                 continue
@@ -583,6 +603,10 @@ class Jayko:
             token_to_add = LBRACE_TOKEN()
         elif candidate_token_str == "}":
             token_to_add = RBRACE_TOKEN()
+        elif candidate_token_str == "(":
+            token_to_add = LPAREN_TOKEN()
+        elif candidate_token_str == ")":
+            token_to_add = RPAREN_TOKEN()
         elif candidate_token_str == "if":
             token_to_add = IF_TOKEN()
         elif candidate_token_str == "else":
@@ -804,7 +828,10 @@ class Jayko:
         print(f"[expr] rbp={rbp}  peek={self.peek_tokens().type}  peek.lbp={getattr(self.peek_tokens(), 'lbp', None)}  cursor={self.token_cursor}")
         t = self.advance_tokens()
 
-        left = t.nud()
+        if t.type == "LPAREN_TOKEN":
+            left = t.nud(self)
+        else:
+            left = t.nud()
         
         self.expr_call_count+=1
 
@@ -936,9 +963,9 @@ if __name__ == "__main__":
     print(f" candidate_tokens = {j.candidate_tokens}")
     j.parse()
 
-    #print("PRINTING THE TREES")
-    #for top_level_node in j.root:
-    #    j.print_ast(top_level_node)
+    print("PRINTING THE TREES")
+    for top_level_node in j.root:
+        j.print_ast(top_level_node)
     j.generate_code()
 
 
