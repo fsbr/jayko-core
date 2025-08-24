@@ -500,10 +500,11 @@ class Jayko:
 
         source = open(input_file)
         for line in source.readlines():
-            self.raw_characters+=line.strip("\n")
+            #self.raw_characters+=line.strip("\n")
+            self.raw_characters+=line
 
         print("raw, characters")
-        print(self.raw_characters)
+        print(repr(self.raw_characters))
 
     def tokenize(self):
 
@@ -564,6 +565,15 @@ class Jayko:
                     continue
                     
 
+            if ch == "/":
+                nx = self.peek_chars()
+                if nx == "/":
+                    self.advance_chars()
+                    self.advance_chars()                # consume both "/"'s
+                    while ch != "\n":
+                        ch = self.raw_characters[ self.raw_char_cursor ]
+                        self.advance_chars()
+                    continue
 
 
             # 4) Single-char punctuators/operators
