@@ -40,6 +40,13 @@ class INT_LITERAL_TOKEN:
     def __repr__(self):
         return f"TokenType = {self.type} value = {self.value}"
 
+class U8_TOKEN:
+    def __init__(self):
+        self.type = "U8_TOKEN"
+        self.value = "u8"
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
 class STRING_LITERAL_TOKEN:
     def __init__(self):
         self.type = "STRING_LITERAL_TOKEN"
@@ -92,6 +99,24 @@ class RPAREN_TOKEN:
     def __init__(self):
         self.type = "RPAREN_TOKEN"
         self.lbp = 0
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
+class COLON_TOKEN:
+    def __init__(self):
+        self.type = "COLON_TOKEN"
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
+class LSQUARE_TOKEN:
+    def __init__(self):
+        self.type = "LSQUARE_TOKEN"
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
+class RSQUARE_TOKEN:
+    def __init__(self):
+        self.type = "RSQUARE_TOKEN"
     def __repr__(self):
         return f"TokenType = {self.type}"
 
@@ -278,9 +303,23 @@ class LET_AST_NODE:
         self.type = "LET_AST_NODE"
         self.lvalue = None                  # the variable name
         self.rvalue = None                  # the root of the subtree forming the expression to be stored in lvalue
+        self.declared_type = None
     def code_gen(self):
-        rhs = self.rvalue.code_gen()
         identifier = self.lvalue.code_gen()
+
+        # if its a dynamic array like let arr: u8[] = [];
+        if self.declared_type and self.declared_type["is_array"]:
+            base_type = self.declared_type["base"]
+            array_typename = f"Array_{base_type}"
+            
+            # typedef for this base (deals with the fact that we only want one u8 type array per
+            # program, even though we may declare multiple u8 type arrays in our code
+            # self.code_gen_context.require_array_typedef(base_type)
+
+            # for empty arrays, initialize with {0}
+            return f"\t{array_typename} {identifier} = {{0}};\n"
+        # normal variable
+        rhs = self.rvalue.code_gen()
         return f"\tint {identifier} = {rhs};\n"
     def __repr__(self):
         return f"AST_NODE type = {self.type} value = {self.lvalue} "
@@ -498,6 +537,14 @@ class LOOP_AST_NODE:
     def __repr__(self):
         return f"AST_NODE type = {self.type}, with loop_condition = {self.loop_condition}, and loop_block = {self.loop_block}" 
 
+class EMPTY_ARRAY_LITERAL_AST_NODE:
+    def __init__(self):
+        self.type = "EMPTY_ARRAY_LITERAL_AST_NODE"
+    def code_gen(self):
+        pass
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}"
+
 
 
 ###############################################################################
@@ -609,13 +656,11 @@ class Jayko:
                         self.advance_chars()
                     continue
 
-
             # 4) Single-char punctuators/operators
-            if ch in ("*", "+", "-", ";", "%", "{", "}", "=", "<", ">", "(",")"):
+            if ch in ("*", "+", "-", ":", ";", "%", "{", "}", "=", "<", ">", "(",")", "[", "]"):
                 self.candidate_tokens.append(self.token_dispatch(ch))
                 self.advance_chars()
                 continue
-
 
             # 5) Strings
             if ch == '"':
@@ -641,8 +686,12 @@ class Jayko:
             token_to_add = LET_TOKEN()
         elif candidate_token_str == "loop":
             token_to_add = LOOP_TOKEN()
+        elif candidate_token_str == "u8":
+            token_to_add = U8_TOKEN()
         elif candidate_token_str == ";":
             token_to_add = SEMICOLON_TOKEN()
+        elif candidate_token_str == ":":
+            token_to_add = COLON_TOKEN()
         elif candidate_token_str == "{":
             token_to_add = LBRACE_TOKEN()
         elif candidate_token_str == "}":
@@ -651,6 +700,10 @@ class Jayko:
             token_to_add = LPAREN_TOKEN()
         elif candidate_token_str == ")":
             token_to_add = RPAREN_TOKEN()
+        elif candidate_token_str == "[":
+            token_to_add = LSQUARE_TOKEN()
+        elif candidate_token_str == "]":
+            token_to_add = RSQUARE_TOKEN()
         elif candidate_token_str == "if":
             token_to_add = IF_TOKEN()
         elif candidate_token_str == "else":
@@ -789,6 +842,7 @@ class Jayko:
     def parse_let(self):
         # a LET statement is 
         # "let" identifier ":=" <expr> ";"
+        # "let" 
        
      
         self.expect("LET_TOKEN") 
@@ -798,10 +852,13 @@ class Jayko:
         id_node_to_add = IDENTIFIER_AST_NODE()
         id_node_to_add.value = identifier
 
+        declared_type = None
+        if self.match("COLON_TOKEN"):
+            declared_type = self.parse_type()
+
+
         self.expect("ASSIGNMENT_TOKEN")
 
-        print("\nbefore self.expr() is first called")
-        print(f"current token = {self.candidate_tokens[ self.token_cursor ]}\n")
         value = self.expr()
 
         self.expect("SEMICOLON_TOKEN")
@@ -810,9 +867,23 @@ class Jayko:
         let_node_to_add = LET_AST_NODE()
         let_node_to_add.lvalue = id_node_to_add
         let_node_to_add.rvalue = value
-        print("\n\n\n")
+        let_node_to_add.declared_type = declared_type
 
         return let_node_to_add
+
+    def parse_type(self):
+        self.expect("U8_TOKEN")
+        base_type = self.expected_token().value
+
+        is_array = False
+        if self.match("LSQUARE_TOKEN"):
+            self.expect("RSQUARE_TOKEN")
+            is_array = True
+
+        return {
+            "base": base_type,
+            "is_array": is_array
+        }
     
     def parse_assignment(self):
         # an ASSIGNMENT statement is 
@@ -874,6 +945,15 @@ class Jayko:
         print(f"[expr] rbp={rbp}  peek={self.peek_tokens().type}  peek.lbp={getattr(self.peek_tokens(), 'lbp', None)}  cursor={self.token_cursor}")
         t = self.advance_tokens()
 
+        if t.type == "LSQUARE_TOKEN":
+            nx = self.peek_tokens()
+            if nx.type == "RSQUARE_TOKEN":
+                self.advance_tokens()           # consume [
+                return EMPTY_ARRAY_LITERAL_AST_NODE()
+            else:
+                raise SyntaxError("We only support empty array literals right now")
+            
+
         if t.type == "LPAREN_TOKEN":
             left = t.nud(self)
         else:
@@ -912,6 +992,9 @@ class Jayko:
         # until we learn of smarter ways to generate cod
         f = open("output.c", "w")
         f.write("#include <stdio.h>\n")
+        f.write("#include <stdint.h>\n")
+        f.write("#include \"c_src/jayko_array.h\"\n")
+        f.write("DA_TYPEDEF(uint8_t, Array_u8);\n")
         f.write("\n")
         f.write("int main() {\n")   
         f.write(self.big_string)
