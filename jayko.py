@@ -186,6 +186,21 @@ class LEQ_TOKEN:
         return f"TokenType = {self.type}"
     
 
+class GEQ_TOKEN:
+    def __init__(self):
+        self.type = "GEQ_TOKEN"
+        self.lbp = 6
+    def led(self, left, jayko_instance):
+        right = jayko_instance.expr(self.lbp)
+
+        geq_node = GEQ_AST_NODE()
+        geq_node.lvalue = left
+        geq_node.rvalue = right
+        return geq_node
+        
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
 class ADD_TOKEN:
     def __init__(self):
         self.type = "ADD_TOKEN"
@@ -352,13 +367,25 @@ class GT_AST_NODE:
 
 class LEQ_AST_NODE:
     def __init__(self):
-        self.type = "LT_AST_NODE"
+        self.type = "LEQ_AST_NODE"
         self.lvalue = None
         self.rvalue = None
     def code_gen(self):
         left_code = self.lvalue.code_gen()
         right_code = self.rvalue.code_gen()
         return f"({left_code} <= {right_code})"
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
+
+class GEQ_AST_NODE:
+    def __init__(self):
+        self.type = "GEQ_AST_NODE"
+        self.lvalue = None
+        self.rvalue = None
+    def code_gen(self):
+        left_code = self.lvalue.code_gen()
+        right_code = self.rvalue.code_gen()
+        return f"({left_code} >= {right_code})"
     def __repr__(self):
         return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
     
@@ -564,6 +591,13 @@ class Jayko:
                     self.candidate_tokens.append(self.token_dispatch("<="))
                     continue
                     
+            if ch == ">":
+                nx = self.peek_chars()
+                if nx == "=":
+                    self.advance_chars()                # consume "<"
+                    self.advance_chars()                # consume "="
+                    self.candidate_tokens.append(self.token_dispatch(">="))
+                    continue
 
             if ch == "/":
                 nx = self.peek_chars()
@@ -633,6 +667,8 @@ class Jayko:
             token_to_add = LT_TOKEN()
         elif candidate_token_str == "<=":
             token_to_add = LEQ_TOKEN()
+        elif candidate_token_str == ">=":
+            token_to_add = GEQ_TOKEN()
         elif candidate_token_str == ">":
             token_to_add = GT_TOKEN()
         elif candidate_token_str == "%":
@@ -912,22 +948,18 @@ class Jayko:
             return None
 
     # for tokens
-    def peek_tokens(self):
+    def peek_tokens(self,offset=0):
         # why it's not self.token_cursor + 1, is because self.advance_tokens advances the cursor
         # when used in conjunction with peek_tokens, so the "peek" token is actually where the 
         # cursor is at a given time.
+        idx = self.token_cursor + offset
+        if idx >= len(self.candidate_tokens):
+           return EOF_TOKEN() 
         return self.candidate_tokens[ self.token_cursor ] # self.token_cursor + 1 "works"
 
     def advance_tokens(self):
         value = self.candidate_tokens[ self.token_cursor ]
         self.token_cursor +=1
-        return value
-
-    def next_token(self):
-        #self.token_cursor +=1
-        print(f"self.token_cursor = {self.token_cursor}")
-        print(f"length of token list = {len(self.candidate_tokens)}")
-        value = self.candidate_tokens[ self.token_cursor+1 ]
         return value
 
     def expected_token(self):
