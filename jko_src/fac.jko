@@ -1,0 +1,16 @@
+// This is a comment
+// wow!!
+let x = 10;
+let acc = 1;
+let i = 1;
+
+if (i == 0) { // help
+    say 1; // asdfadsfasdfasdf //
+} else {
+    loop i <= x {
+        acc = acc * i;
+        i = i + 1;
+    }
+
+    say acc;
+}
