@@ -134,12 +134,20 @@ class COLON_TOKEN:
 class LSQUARE_TOKEN:
     def __init__(self):
         self.type = "LSQUARE_TOKEN"
+        self.lbp = 100
+    def led(self, left, jayko_instance):
+        node = DA_INDEX_AST_NODE()
+        node.target = left
+        node.index = jayko_instance.expr()
+        jayko_instance.expect("RSQUARE_TOKEN")
+        return node
     def __repr__(self):
         return f"TokenType = {self.type}"
 
 class RSQUARE_TOKEN:
     def __init__(self):
         self.type = "RSQUARE_TOKEN"
+        self.lbp = 0
     def __repr__(self):
         return f"TokenType = {self.type}"
 

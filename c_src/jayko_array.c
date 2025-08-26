@@ -21,6 +21,10 @@ int main(void) {
     for (size_t i = 0; i < xs.count; ++i) {
         printf(" HELLO: x=%d, y=%d \n", xs.items[i].x, xs.items[i].y); 
     }
+    Point p4 = PointArray_get(&xs, 0);
+    printf(" hey again: x=%d, y=%d \n", p4.x, p4.y); 
+
+    Point p5 = PointArray_get(&xs, 4);
 
     PointArray_free(&xs);
     return 0;

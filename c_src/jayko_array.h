@@ -32,5 +32,12 @@
         xs->items = NULL; \
         xs->count = 0; \
         xs->capacity = 0; \
+    }\
+    static inline T Name##_get(Name *xs, size_t index) { \
+        if (index >= xs->count) { \
+            fprintf(stderr, "Index %zu out of bounds (size: %zu)\n", index, xs->count);\
+            exit(1);\
+        } \
+        return xs->items[index];\
     }
 #endif

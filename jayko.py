@@ -223,18 +223,6 @@ class Jayko:
             if current_token.type == "LET_TOKEN":
                 let_subtree = self.parse_let()
                 return let_subtree
-            #elif current_token.type == "IDENTIFIER_TOKEN":
-            #    # if we see an identifier token at the start of a statment theres a couple things
-            #    # that could be happening
-            #    nx = self.candidate_tokens[ self.token_cursor + 1]
-            #    print(f"[parse_statemetn] nx = {nx}")
-            #    if nx.type == "ASSIGNMENT_TOKEN":
-            #        print(f"[parse_statement] nx.type == ASSIGNMENT_TOKEN")
-            #        assignment_subtree = self.parse_assignment()
-            #    else: #nx.type == "EQUALITY_TOKEN":
-            #        print(f"[parse_statement] else")
-            #        assignment_subtree = self.expr()
-            #    return assignment_subtree
 
             elif current_token.type == "IDENTIFIER_TOKEN":
                 nx = self.candidate_tokens[ self.token_cursor +1]
@@ -243,9 +231,11 @@ class Jayko:
                     return subtree 
                 elif nx.type == "DOT_TOKEN":
                     subtree = self.expr()
-
                     # we will probably have to change this later, if we want multiple function .appends() 
                     self.expect("SEMICOLON_TOKEN")      # not really sure why it needs this
+                    return subtree # this is returning a None
+                elif nx.type == "LSQUARE_TOKEN":
+                    subtree = self.expr()
                     return subtree # this is returning a None
                 else: 
                     print("Error parsing an initial identifier token")
@@ -270,6 +260,17 @@ class Jayko:
             else:
                 print(f"We do not know how to process the token {current_token}")
                 quit()
+
+    def parse_index(self):
+        node = DA_INDEX_AST_NODE()
+        identifier = self.candidate_tokens[ self.token_cursor ]
+        node.target = identifier.value
+        node.target_type = self.symbol_table[node.target]
+
+        self.expect("LSQUARE_TOKEN")
+        node.index = self.expr()
+        self.expect("RSQUARE_TOKEN")
+        return node
 
     def parse_block(self):
         print("[parse_block], entered")
@@ -431,7 +432,7 @@ class Jayko:
                 raise SyntaxError("We only support empty array literals right now")
             
 
-        if t.type == "LPAREN_TOKEN":
+        if t.type in ("LPAREN_TOKEN", "LSQUARE_TOKEN"):
             left = t.nud(self)
         else:
             left = t.nud()
@@ -564,10 +565,10 @@ if __name__ == "__main__":
     j = Jayko()
     j.read_source(source_file)
     j.tokenize()
-    print(f" candidate_tokens = {j.candidate_tokens}")
-    print("\n== TOKEN DUMP")
-    for tok in j.candidate_tokens:
-        print(f"tok -> {tok}")
+    #print(f" candidate_tokens = {j.candidate_tokens}")
+    #print("\n== TOKEN DUMP")
+    #for tok in j.candidate_tokens:
+    #    print(f"tok -> {tok}")
     j.parse()
 
     print("PRINTING THE TREES")

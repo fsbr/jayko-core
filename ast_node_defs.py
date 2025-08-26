@@ -234,7 +234,7 @@ class LOOP_AST_NODE:
     def code_gen(self):
         cond = self.loop_condition.code_gen()
         loop_block = self.loop_block.code_gen()
-        return f"while ( {cond}) {{ {loop_block} }} "
+        return f"\twhile ( {cond}) {{ {loop_block} }} "
     def __repr__(self):
         return f"AST_NODE type = {self.type}, with loop_condition = {self.loop_condition}, and loop_block = {self.loop_block}" 
 
@@ -257,6 +257,20 @@ class DA_APPEND_AST_NODE:
         val = self.value.code_gen()
         array_type = self.target_type["base"]
         return f"\tArray_{array_type}_append(&{arr}, {val});\n"
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}"
+
+class DA_INDEX_AST_NODE:
+    def __init__(self):
+        self.type = "DA_INDEX_AST_NODE"
+        self.target = None          # array
+        self.target_type = None     # type of the target
+        self.index = None           # index we want to index into
+    def code_gen(self):
+        # Point p4 = PointArray_get(&xs, 0);
+        arr = self.target.code_gen()
+        idx = self.index.code_gen()
+        return f"{arr}.items[{idx}]"
     def __repr__(self):
         return f"AST_NODE type = {self.type}"
 

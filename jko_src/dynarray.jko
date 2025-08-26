@@ -1,6 +1,12 @@
 //let x: u8 = 42;
 let x: u8[] = [];
-
-let y = 8;
 x.append(42);
 x.append(69);
+x.append(31);
+let i = 0;
+
+loop i < 3 {
+    let z = x[i];
+    say z;
+    i = i+1;
+}
