@@ -1,551 +1,7 @@
 #  FRESH START FOR JAYKO
 import sys, subprocess
-
-####################################################################
-# EVENTUALLY I WANT THESE CUMBERSOME TOKEN CLASSES IN THEIR OWN FILE
-####################################################################
-class LET_TOKEN:
-    def __init__(self):
-        self.type = "LET_TOKEN"
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-class IDENTIFIER_TOKEN:
-    def __init__(self):
-        self.type = "IDENTIFIER_TOKEN"
-        self.value = None
-        self.lbp = 0
-    def nud(self):
-        node = IDENTIFIER_AST_NODE()
-        node.value = self.value
-        return node
-    def __repr__(self):
-        return f"TokenType = {self.type}, value = {self.value}"
-
-class ASSIGNMENT_TOKEN:
-    def __init__(self):
-        self.type = "ASSIGNMENT_TOKEN"
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-class INT_LITERAL_TOKEN:
-    def __init__(self):
-        self.type = "INT_LITERAL_TOKEN"
-        self.lbp = 0 # 1 works
-        self.value = None
-    def nud(self):
-        node = INT_LITERAL_AST_NODE()
-        node.value = self.value
-        return node
-    def __repr__(self):
-        return f"TokenType = {self.type} value = {self.value}"
-
-class U8_TOKEN:
-    def __init__(self):
-        self.type = "U8_TOKEN"
-        self.value = "u8"
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-class STRING_LITERAL_TOKEN:
-    def __init__(self):
-        self.type = "STRING_LITERAL_TOKEN"
-        self.lbp = 0 # no idea what it should actually be, so just picking the same as the other literals
-        self.value = None
-    def __repr__(self):
-        return f"TokenType = {self.type} value = {self.value}"
-
-class SAY_TOKEN:
-    def __init__(self):
-        self.type = "SAY_TOKEN"
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-        
-class SEMICOLON_TOKEN:
-    def __init__(self):
-        self.lbp = 0 
-        self.type = "SEMICOLON_TOKEN"
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-class LBRACE_TOKEN:
-    def __init__(self):
-        self.lbp = 0
-        self.type = "LBRACE_TOKEN"
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-class RBRACE_TOKEN:
-    def __init__(self):
-        self.lbp = 0
-        self.type = "RBRACE_TOKEN"
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-
-class LPAREN_TOKEN:
-    def __init__(self,):
-        self.type = "LPAREN_TOKEN"
-        #parse inside parenthesis
-    def nud(self, jayko_instance):
-        expr_node = jayko_instance.expr(0)
-        jayko_instance.expect("RPAREN_TOKEN")
-        return expr_node
-
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-class RPAREN_TOKEN:
-    def __init__(self):
-        self.type = "RPAREN_TOKEN"
-        self.lbp = 0
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-class COLON_TOKEN:
-    def __init__(self):
-        self.type = "COLON_TOKEN"
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-class LSQUARE_TOKEN:
-    def __init__(self):
-        self.type = "LSQUARE_TOKEN"
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-class RSQUARE_TOKEN:
-    def __init__(self):
-        self.type = "RSQUARE_TOKEN"
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-class IF_TOKEN:
-    def __init__(self):
-        self.type = "IF_TOKEN"
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-class LOOP_TOKEN:
-    def __init__(self):
-        self.type = "LOOP_TOKEN"
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-    
-class ELSE_TOKEN:
-    def __init__(self):
-        self.type = "ELSE_TOKEN"
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-class TRUE_TOKEN:
-    def __init__(self):
-        self.type = "TRUE_TOKEN"
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-class FALSE_TOKEN:
-    def __init__(self):
-        self.type = "TRUE_TOKEN"
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-class EQUALITY_TOKEN:
-    def __init__(self):
-        self.type = "EQUALITY_TOKEN"
-        self.lbp = 5
-    def led(self, left, jayko_instance):
-        right = jayko_instance.expr(self.lbp)
-
-        equality_node = EQUALITY_AST_NODE()
-        equality_node.lvalue = left
-        equality_node.rvalue = right
-        return equality_node
-        
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-class LT_TOKEN:
-    def __init__(self):
-        self.type = "LT_TOKEN"
-        self.lbp = 6
-    def led(self, left, jayko_instance):
-        right = jayko_instance.expr(self.lbp)
-
-        lt_node = LT_AST_NODE()
-        lt_node.lvalue = left
-        lt_node.rvalue = right
-        return lt_node
-        
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-class GT_TOKEN:
-    def __init__(self):
-        self.type = "GT_TOKEN"
-        self.lbp = 6
-    def led(self, left, jayko_instance):
-        right = jayko_instance.expr(self.lbp)
-
-        lt_node = GT_AST_NODE()
-        lt_node.lvalue = left
-        lt_node.rvalue = right
-        return lt_node
-        
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-class LEQ_TOKEN:
-    def __init__(self):
-        self.type = "LEQ_TOKEN"
-        self.lbp = 6
-    def led(self, left, jayko_instance):
-        right = jayko_instance.expr(self.lbp)
-
-        leq_node = LEQ_AST_NODE()
-        leq_node.lvalue = left
-        leq_node.rvalue = right
-        return leq_node
-        
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-    
-
-class GEQ_TOKEN:
-    def __init__(self):
-        self.type = "GEQ_TOKEN"
-        self.lbp = 6
-    def led(self, left, jayko_instance):
-        right = jayko_instance.expr(self.lbp)
-
-        geq_node = GEQ_AST_NODE()
-        geq_node.lvalue = left
-        geq_node.rvalue = right
-        return geq_node
-        
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-class ADD_TOKEN:
-    def __init__(self):
-        self.type = "ADD_TOKEN"
-        self.lbp = 10
-    def led(self, left, jayko_instance):
-        print("ADD_TOKEN.led")
-        print(f"[led {self.type}] lbp={self.lbp}  cursor={jayko_instance.token_cursor}")
-        right = jayko_instance.expr(self.lbp)
-
-        add_node = ADD_AST_NODE() 
-        add_node.lvalue = left
-        add_node.rvalue = right
-        return add_node
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-class SUB_TOKEN:
-    def __init__(self):
-        self.type = "SUB_TOKEN"
-        self.lbp = 10
-    def led(self, left, jayko_instance):
-        right = jayko_instance.expr(self.lbp)
-
-        add_node = SUB_AST_NODE() 
-        add_node.lvalue = left
-        add_node.rvalue = right
-        return add_node
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-class MUL_TOKEN:
-    def __init__(self):
-        self.type = "MUL_TOKEN"
-        self.lbp = 20
-    def led(self, left, jayko_instance):
-        print("MUL_TOKEN.led")
-        print(f"[led {self.type}] lbp={self.lbp}  cursor={jayko_instance.token_cursor}")
-        right = jayko_instance.expr(self.lbp)
-
-        mul_node = MUL_AST_NODE() 
-        mul_node.lvalue = left
-        mul_node.rvalue = right
-        return mul_node
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-class MOD_TOKEN:
-    def __init__(self):
-        self.type = "MOD_TOKEN"
-        self.lbp = 20
-    def led(self, left, jayko_instance):
-        #print("MUL_TOKEN.led")
-        #print(f"[led {self.type}] lbp={self.lbp}  cursor={jayko_instance.token_cursor}")
-        right = jayko_instance.expr(self.lbp)
-
-        mod_node = MOD_AST_NODE() 
-        mod_node.lvalue = left
-        mod_node.rvalue = right
-        return mod_node
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-class EOF_TOKEN:
-    def __init__(self):
-        self.type = "EOF_TOKEN"
-        self.lbp = 0
-    def __repr__(self):
-        return f"TokenType = {self.type}"
-
-###############################################################################
-#  AST NODES SHOULD ALSO GO IN THEIR OWN FILE SOME DAY                        #
-###############################################################################
-class LET_AST_NODE:
-    def __init__(self):
-        self.type = "LET_AST_NODE"
-        self.lvalue = None                  # the variable name
-        self.rvalue = None                  # the root of the subtree forming the expression to be stored in lvalue
-        self.declared_type = None
-    def code_gen(self):
-        identifier = self.lvalue.code_gen()
-
-        # if its a dynamic array like let arr: u8[] = [];
-        if self.declared_type and self.declared_type["is_array"]:
-            base_type = self.declared_type["base"]
-            array_typename = f"Array_{base_type}"
-            
-            # typedef for this base (deals with the fact that we only want one u8 type array per
-            # program, even though we may declare multiple u8 type arrays in our code
-            # self.code_gen_context.require_array_typedef(base_type)
-
-            # for empty arrays, initialize with {0}
-            return f"\t{array_typename} {identifier} = {{0}};\n"
-        # normal variable
-        rhs = self.rvalue.code_gen()
-        return f"\tint {identifier} = {rhs};\n"
-    def __repr__(self):
-        return f"AST_NODE type = {self.type} value = {self.lvalue} "
-
-# we absolutely need to incorporate the difference between a decaration and an assignemnt
-class ASSIGNMENT_AST_NODE:
-    def __init__(self):
-        self.type = "ASSIGNMENT_AST_NODE"
-        self.lvalue = None
-        self.rvalue = None
-    def code_gen(self):
-        rhs = self.rvalue.code_gen()
-        identifier = self.lvalue.code_gen()
-        return f"\t {identifier } = {rhs};\n"
-    def __repr__(self):
-        return f"AST_NODE type = {self.type} value = {self.lvalue} "
-
-
-
-class IDENTIFIER_AST_NODE:
-    def __init__(self):
-        self.type = "IDENTIFIER_AST_NODE"
-        self.value = None                                               # WE ONLY SUPPORT INTEGERS RN
-    def code_gen(self):
-        return str(self.value)
-     
-    def __repr__(self):
-        return f"AST_NODE type = {self.type}, value = {self.value}"
-
-class INT_LITERAL_AST_NODE:
-    def __init__(self):
-        self.type = "INT_LITERAL_AST_NODE"
-        self.value = None
-    def code_gen(self):
-        return str(self.value)
-    def __repr__(self):
-        return f"AST_NODE type = {self.type}, value = {self.value}"
-
-class STRING_LITERAL_AST_NODE:
-    def __init__(self):
-        self.type = "STRING_LITERAL_AST_NODE"           
-        self.value = None                               
-    def code_gen(self):
-        return str(self.value)
-    def __repr__(self):
-        return f"AST_NODE type = {self.type}, value = {self.value}"
-
-class EQUALITY_AST_NODE:
-    def __init__(self):
-        self.type = "EQUALITY_AST_NODE"
-        self.lvalue = None
-        self.rvalue = None
-    def code_gen(self):
-        print("Generating code for EQUALITY")
-        left_code = self.lvalue.code_gen()
-        right_code = self.rvalue.code_gen()
-        return f"({left_code} == {right_code})"
-    def __repr__(self):
-        return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
-
-class LT_AST_NODE:
-    def __init__(self):
-        self.type = "LT_AST_NODE"
-        self.lvalue = None
-        self.rvalue = None
-    def code_gen(self):
-        left_code = self.lvalue.code_gen()
-        right_code = self.rvalue.code_gen()
-        return f"({left_code} < {right_code})"
-    def __repr__(self):
-        return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
-
-class GT_AST_NODE:
-    def __init__(self):
-        self.type = "GT_AST_NODE"
-        self.lvalue = None
-        self.rvalue = None
-    def code_gen(self):
-        left_code = self.lvalue.code_gen()
-        right_code = self.rvalue.code_gen()
-        return f"({left_code} > {right_code})"
-    def __repr__(self):
-        return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
-
-class LEQ_AST_NODE:
-    def __init__(self):
-        self.type = "LEQ_AST_NODE"
-        self.lvalue = None
-        self.rvalue = None
-    def code_gen(self):
-        left_code = self.lvalue.code_gen()
-        right_code = self.rvalue.code_gen()
-        return f"({left_code} <= {right_code})"
-    def __repr__(self):
-        return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
-
-class GEQ_AST_NODE:
-    def __init__(self):
-        self.type = "GEQ_AST_NODE"
-        self.lvalue = None
-        self.rvalue = None
-    def code_gen(self):
-        left_code = self.lvalue.code_gen()
-        right_code = self.rvalue.code_gen()
-        return f"({left_code} >= {right_code})"
-    def __repr__(self):
-        return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
-    
-
-class ADD_AST_NODE:
-    def __init__(self):
-        self.type = "ADD_AST_NODE"
-        self.lvalue = None
-        self.rvalue = None
-    def code_gen(self):
-        print("Generating code for ADD")
-        left_code = self.lvalue.code_gen()
-        right_code = self.rvalue.code_gen()
-        return f"({left_code} + {right_code})"
-    def __repr__(self):
-        return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
-
-class SUB_AST_NODE:
-    def __init__(self):
-        self.type = "SUB_AST_NODE"
-        self.lvalue = None
-        self.rvalue = None
-    def code_gen(self):
-        left_code = self.lvalue.code_gen()
-        right_code = self.rvalue.code_gen()
-        return f"({left_code} - {right_code})"
-    def __repr__(self):
-        return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
-
-class MUL_AST_NODE:
-    def __init__(self):
-        self.type = "MUL_AST_NODE"
-        self.lvalue = None
-        self.rvalue = None
-    def code_gen(self):
-        print("Generating code for MUL")
-        left_code = self.lvalue.code_gen()
-        right_code = self.rvalue.code_gen()
-        return f"({left_code} * {right_code})"
-    def __repr__(self):
-        return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
-
-class MOD_AST_NODE:
-    def __init__(self):
-        self.type = "MOD_AST_NODE"
-        self.lvalue = None
-        self.rvalue = None
-    def code_gen(self):
-        print("Generating code for MOD")
-        left_code = self.lvalue.code_gen()
-        right_code = self.rvalue.code_gen()
-        return f"({left_code} % {right_code})"
-    def __repr__(self):
-        return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
-
-class SAY_AST_NODE:
-    def __init__(self):
-        self.type = "SAY_AST_NODE"
-        self.value = None
-        self.route = None                               # route is to dispatch to the correct code generation
-    def code_gen(self):
-        if self.route == "IDENTIFIER_TOKEN" or self.route == "INT_LITERAL_TOKEN":                         # this feels like a hack, because we are 
-            return f"\tprintf( \"%d\\n\", {self.value} );\n"    # assuming depth 1 expressions.
-        if self.route == "STRING_LITERAL_TOKEN":
-            l1 = f"\tchar str[] = {self.value};\n"
-            l2 = f"\tprintf( \"%s\\n\", str );\n"
-            return l1 + l2 
-    def __repr__(self):
-        return f"AST_NODE type = {self.type}, value = {self.value}"
-
-class BLOCK_AST_NODE:
-    def __init__(self):
-        self.type = "BLOCK_AST_NODE"
-        self.statements = []
-    def code_gen(self):
-        buf = []
-        for ast_node in self.statements:
-            buf.append(f"{ast_node.code_gen()}")
-        return "".join(buf)
-
-    def __repr__(self):
-        return f"AST_NODE type = {self.type}, with {len(self.statements)} statements in it"
-
-class IF_AST_NODE:
-    def __init__(self):
-        self.type = "IF_AST_NODE"
-        self.if_condition = None
-        self.then_block = None
-        self.else_block = None
-    def code_gen(self):
-        cond = self.if_condition.code_gen()
-        then_block = self.then_block.code_gen()
-        if self.else_block != None:
-            else_block = self.else_block.code_gen()
-            return f"\tif ( {cond} )\n \t{{ {then_block} \n \t}} else {{ \n \t {else_block} \t}}\n"
-
-        return f"\tif ({cond}) \n \t{{ {then_block} }} "
-    def __repr__(self):
-        return f"AST_NODE type = {self.type}, with if_condition = {self.if_condition}, then_block = {self.then_block}, else_block = {self.else_block}"
-
-class LOOP_AST_NODE:
-    def __init__(self):
-        self.type = "LOOP_AST_NODE"
-        self.loop_condition = None 
-        self.loop_block = None
-    def code_gen(self):
-        cond = self.loop_condition.code_gen()
-        loop_block = self.loop_block.code_gen()
-        return f"while ( {cond}) {{ {loop_block} }} "
-    def __repr__(self):
-        return f"AST_NODE type = {self.type}, with loop_condition = {self.loop_condition}, and loop_block = {self.loop_block}" 
-
-class EMPTY_ARRAY_LITERAL_AST_NODE:
-    def __init__(self):
-        self.type = "EMPTY_ARRAY_LITERAL_AST_NODE"
-    def code_gen(self):
-        pass
-    def __repr__(self):
-        return f"AST_NODE type = {self.type}"
-
-
+from token_defs import *
+from ast_node_defs import *
 
 ###############################################################################
 #  LEXING AND PARSING FOR JAYKO
@@ -557,7 +13,6 @@ class Jayko:
 
         self.candidate_tokens = []          # breaks up the text into the individual parts of speech
         self.token_cursor = 0
-
         
         self.root = []                      # root is where the ast is formed, in order
 
@@ -565,6 +20,10 @@ class Jayko:
         self.expr_call_count = 0
 
         self.big_string = ""                # big_string is where the c code ends up
+
+        # symbol table (it is finally time to learn how it works)
+        # runtime stuff
+        self.symbol_table = {}              # empty dict rn
 
     def read_source(self,input_file):
         # read_source(): takes the source code and puts every character into
@@ -657,7 +116,7 @@ class Jayko:
                     continue
 
             # 4) Single-char punctuators/operators
-            if ch in ("*", "+", "-", ":", ";", "%", "{", "}", "=", "<", ">", "(",")", "[", "]"):
+            if ch in ("*", "+", "-", ":", ";", "%", "{", "}", "=", "<", ">", "(",")", "[", "]", "."):
                 self.candidate_tokens.append(self.token_dispatch(ch))
                 self.advance_chars()
                 continue
@@ -726,6 +185,8 @@ class Jayko:
             token_to_add = GT_TOKEN()
         elif candidate_token_str == "%":
             token_to_add = MOD_TOKEN()
+        elif candidate_token_str == ".":
+            token_to_add = DOT_TOKEN()
         elif candidate_token_str == "=":
             token_to_add = ASSIGNMENT_TOKEN()
         elif candidate_token_str == "say":
@@ -744,7 +205,7 @@ class Jayko:
             print("Exiting...")
             quit()
 
-
+        print(f"[token dispatch] about to return {token_to_add}")
         return token_to_add
 
     def parse(self):
@@ -776,8 +237,21 @@ class Jayko:
             #    return assignment_subtree
 
             elif current_token.type == "IDENTIFIER_TOKEN":
-                assignment_subtree = self.parse_assignment()
-                return assignment_subtree
+                nx = self.candidate_tokens[ self.token_cursor +1]
+                if nx.type == "ASSIGNMENT_TOKEN":
+                    subtree = self.parse_assignment() # these two work
+                    return subtree 
+                elif nx.type == "DOT_TOKEN":
+                    subtree = self.expr()
+
+                    # we will probably have to change this later, if we want multiple function .appends() 
+                    self.expect("SEMICOLON_TOKEN")      # not really sure why it needs this
+                    return subtree # this is returning a None
+                else: 
+                    print("Error parsing an initial identifier token")
+                    print(f"[identifier_token, else] nx = {nx}")
+                    quit()
+
             elif current_token.type == "SAY_TOKEN":
                 say_subtree = self.parse_say()
                 return say_subtree
@@ -869,6 +343,9 @@ class Jayko:
         let_node_to_add.rvalue = value
         let_node_to_add.declared_type = declared_type
 
+        # also append the info to our brand new symbol table!
+        self.symbol_table[identifier] = declared_type
+
         return let_node_to_add
 
     def parse_type(self):
@@ -887,7 +364,7 @@ class Jayko:
     
     def parse_assignment(self):
         # an ASSIGNMENT statement is 
-        # <identifier> ":=" <expr> ";"
+        # <identifier> "=" <expr> ";"
         self.expect("IDENTIFIER_TOKEN")
         identifier = self.expected_token().value 
         id_node_to_add = IDENTIFIER_AST_NODE()
@@ -958,7 +435,7 @@ class Jayko:
             left = t.nud(self)
         else:
             left = t.nud()
-        
+
         self.expr_call_count+=1
 
         # while rbp < self.peek_tokens().lbp: # ok
@@ -1052,8 +529,10 @@ class Jayko:
         t = self.advance_tokens()
         if t.type != token_type:
             raise SyntaxError(f"Expected {token_type} got {t.type}")
+        return t
 
     def match(self, token_type):
+        # checks the next token
         if (self.peek_tokens().type == token_type):
             self.advance_tokens()
             return True
@@ -1086,6 +565,9 @@ if __name__ == "__main__":
     j.read_source(source_file)
     j.tokenize()
     print(f" candidate_tokens = {j.candidate_tokens}")
+    print("\n== TOKEN DUMP")
+    for tok in j.candidate_tokens:
+        print(f"tok -> {tok}")
     j.parse()
 
     print("PRINTING THE TREES")

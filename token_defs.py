@@ -1,6 +1,7 @@
 ####################################################################
 # TOKEN DEFNITIONS ARE FINALLY IN THEIR OWN FILES
 ####################################################################
+from ast_node_defs import *
 class LET_TOKEN:
     def __init__(self):
         self.type = "LET_TOKEN"
@@ -47,6 +48,25 @@ class U8_TOKEN:
 class DOT_TOKEN:
     def __init__(self):
         self.type = "DOT_TOKEN"
+        self.lbp = 100 
+    def led(self, left, jayko_instance):
+        method_token = jayko_instance.expect("IDENTIFIER_TOKEN")
+        print("[dot_token.led() method_token = {method_token}")
+        method_token = method_token.value
+
+        jayko_instance.expect("LPAREN_TOKEN")
+        arg_expr = jayko_instance.expr()
+        print(f"[dot_token.led() arg_expr = {arg_expr}")
+        jayko_instance.expect("RPAREN_TOKEN")
+
+        node = DA_APPEND_AST_NODE()
+        node.target = left              # kind of awkward becuase we eventually need to add error checking for like (1+2).append()
+        node.value = arg_expr
+        node.target_type = jayko_instance.symbol_table[node.target.value]   # i can't really tell if this only works for one case or what the edge cases even are for it.
+        print(f"[dot token led] node.target = {node.target}")
+        print(f"[dot token led] node.value = {node.value}")
+        print(f"[dot token led] node.target_type = {node.target_type}")
+        return node
     def __repr__(self):
         return f"TokenType = {self.type}"
 

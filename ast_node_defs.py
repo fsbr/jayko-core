@@ -40,8 +40,6 @@ class ASSIGNMENT_AST_NODE:
     def __repr__(self):
         return f"AST_NODE type = {self.type} value = {self.lvalue} "
 
-
-
 class IDENTIFIER_AST_NODE:
     def __init__(self):
         self.type = "IDENTIFIER_AST_NODE"
@@ -247,4 +245,29 @@ class EMPTY_ARRAY_LITERAL_AST_NODE:
         pass
     def __repr__(self):
         return f"AST_NODE type = {self.type}"
+
+class DA_APPEND_AST_NODE:
+    def __init__(self):
+        self.type = "DA_APPEND_AST_NODE"
+        self.target = None      # array
+        self.value = None       # the value we want to append
+        self.target_type = None
+    def code_gen(self):
+        arr = self.target.code_gen()
+        val = self.value.code_gen()
+        array_type = self.target_type["base"]
+        return f"\tArray_{array_type}_append(&{arr}, {val});\n"
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}"
+
+#class METHOD_CALL_AST_NODE:
+#    def __init__(self):
+#        self.type = "METHOD_CALL_AST_NODE"
+#        self.target = None
+#        self.method = None
+#        self.args = []
+#    def code_gen(self):
+#        target = self.target.code_gen()
+#        arg_code = ", ".join(arg.code_gen() for arg in self.args)
+#        return f"\tArray_u8_{self.method}(&{target}, {arg_code});\n"
 
