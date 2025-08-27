@@ -1,12 +1,41 @@
 //let x: u8 = 42;
 let x: u8[] = [];
-x.append(42);
-x.append(69);
-x.append(31);
+let y: u8[] = [];
+
 let i = 0;
 
-loop i < 3 {
-    let z = x[i];
-    say z;
+loop i < 10 {
+    x.append(i);
+    i = i + 1;
+}
+i = 0;
+loop i<10 {
+    y.append(2*i+3);
+    i = i + 1;
+}
+i = 0;
+x[0] = 255;
+loop i < 10 {
+    let x1 = x[i];
+    let y1 = y[i];
+    say "x then y";
+    say x1;
+    say y1;
     i = i+1;
 }
+
+
+
+//loop i < 10 {
+//    let y = i*i;
+//    x.append(y);
+//    i = i+1;
+//}
+//
+//say "loop beginning";
+//let ii = 0;
+//loop ii < 13 {
+//    let z = x[ii];
+//    say z;
+//    ii = ii + 1;
+//}

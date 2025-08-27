@@ -225,22 +225,10 @@ class Jayko:
                 return let_subtree
 
             elif current_token.type == "IDENTIFIER_TOKEN":
-                nx = self.candidate_tokens[ self.token_cursor +1]
-                if nx.type == "ASSIGNMENT_TOKEN":
-                    subtree = self.parse_assignment() # these two work
-                    return subtree 
-                elif nx.type == "DOT_TOKEN":
-                    subtree = self.expr()
-                    # we will probably have to change this later, if we want multiple function .appends() 
-                    self.expect("SEMICOLON_TOKEN")      # not really sure why it needs this
-                    return subtree # this is returning a None
-                elif nx.type == "LSQUARE_TOKEN":
-                    subtree = self.expr()
-                    return subtree # this is returning a None
-                else: 
-                    print("Error parsing an initial identifier token")
-                    print(f"[identifier_token, else] nx = {nx}")
-                    quit()
+                subtree = self.expr()
+                self.expect("SEMICOLON_TOKEN")
+                print(f"[parse_statement, id_tok] subtree = {subtree}")
+                return subtree
 
             elif current_token.type == "SAY_TOKEN":
                 say_subtree = self.parse_say()
@@ -423,15 +411,6 @@ class Jayko:
         print(f"[expr] rbp={rbp}  peek={self.peek_tokens().type}  peek.lbp={getattr(self.peek_tokens(), 'lbp', None)}  cursor={self.token_cursor}")
         t = self.advance_tokens()
 
-        if t.type == "LSQUARE_TOKEN":
-            nx = self.peek_tokens()
-            if nx.type == "RSQUARE_TOKEN":
-                self.advance_tokens()           # consume [
-                return EMPTY_ARRAY_LITERAL_AST_NODE()
-            else:
-                raise SyntaxError("We only support empty array literals right now")
-            
-
         if t.type in ("LPAREN_TOKEN", "LSQUARE_TOKEN"):
             left = t.nud(self)
         else:
@@ -442,7 +421,7 @@ class Jayko:
         # while rbp < self.peek_tokens().lbp: # ok
         while True:
             tok = self.peek_tokens()
-            if tok.type in ("LET_TOKEN", "SEMICOLON_TOKEN", "SAY_TOKEN", "EOF_TOKEN"):
+            if tok.type in ("LET_TOKEN", "SAY_TOKEN", "EOF_TOKEN", "SEMICOLON_TOKEN"):
                 break
             if rbp >= tok.lbp:
                 break

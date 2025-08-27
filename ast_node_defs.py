@@ -242,7 +242,7 @@ class EMPTY_ARRAY_LITERAL_AST_NODE:
     def __init__(self):
         self.type = "EMPTY_ARRAY_LITERAL_AST_NODE"
     def code_gen(self):
-        pass
+        pass                # cant remember why it's this
     def __repr__(self):
         return f"AST_NODE type = {self.type}"
 
@@ -273,6 +273,22 @@ class DA_INDEX_AST_NODE:
         return f"{arr}.items[{idx}]"
     def __repr__(self):
         return f"AST_NODE type = {self.type}"
+
+class DA_INDEX_ASSIGN_AST_NODE:
+    def __init__(self):
+        self.type = "DA_INDEX_ASSIGN_AST_NODE"
+        self.target = None          # array
+        self.index = None           # the index
+        self.target_type = None     # the type of the array
+        self.value = None           # 
+    
+    def code_gen(self):
+        arr = self.target.code_gen()
+        idx = self.index.code_gen()
+        val = self.value.code_gen()
+        array_type = self.target_type["base"]
+        return f"{arr}.items[idx] = {val};" 
+
 
 #class METHOD_CALL_AST_NODE:
 #    def __init__(self):

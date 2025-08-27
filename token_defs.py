@@ -23,6 +23,12 @@ class IDENTIFIER_TOKEN:
 class ASSIGNMENT_TOKEN:
     def __init__(self):
         self.type = "ASSIGNMENT_TOKEN"
+        self.lbp = 5
+    def led(self, left, jayko_instance):
+        node = ASSIGNMENT_AST_NODE()
+        node.lvalue = left
+        node.rvalue = jayko_instance.expr(4)
+        return node
     def __repr__(self):
         return f"TokenType = {self.type}"
 
@@ -105,7 +111,6 @@ class RBRACE_TOKEN:
     def __repr__(self):
         return f"TokenType = {self.type}"
 
-
 class LPAREN_TOKEN:
     def __init__(self,):
         self.type = "LPAREN_TOKEN"
@@ -135,6 +140,13 @@ class LSQUARE_TOKEN:
     def __init__(self):
         self.type = "LSQUARE_TOKEN"
         self.lbp = 100
+    def nud(self, jayko_instance):
+        nx = jayko_instance.peek_tokens()
+        if nx.type == "RSQUARE_TOKEN":
+            jayko_instance.advance_tokens() # consume ]
+            return EMPTY_ARRAY_LITERAL_AST_NODE()
+        raise SyntaxError("non-empty array literals not yet supported")
+
     def led(self, left, jayko_instance):
         node = DA_INDEX_AST_NODE()
         node.target = left
@@ -277,6 +289,7 @@ class SUB_TOKEN:
     def __init__(self):
         self.type = "SUB_TOKEN"
         self.lbp = 10
+    def nud(self):
     def led(self, left, jayko_instance):
         right = jayko_instance.expr(self.lbp)
 
