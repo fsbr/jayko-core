@@ -1,5 +1,5 @@
-let b = 720;
-let a = 120;
+let b: i32 = 720;
+let a: i32 = 120;
 
 if a > b {
     a = a - b;

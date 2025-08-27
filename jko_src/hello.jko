@@ -1,2 +1,6 @@
-let form=5;
+let form: u8 =256;
 say form;
+
+let at: i32 = 257;
+say at;
+

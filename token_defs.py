@@ -51,6 +51,20 @@ class U8_TOKEN:
     def __repr__(self):
         return f"TokenType = {self.type}"
 
+class I32_TOKEN:
+    def __init__(self):
+        self.type = "I32_TOKEN"
+        self.value = "i32"
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
+class STR_TOKEN:
+    def __init__(self):
+        self.type = "STR_TOKEN"
+        self.value = "str" 
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
 class DOT_TOKEN:
     def __init__(self):
         self.type = "DOT_TOKEN"
@@ -81,6 +95,11 @@ class STRING_LITERAL_TOKEN:
         self.type = "STRING_LITERAL_TOKEN"
         self.lbp = 0 # no idea what it should actually be, so just picking the same as the other literals
         self.value = None
+    def nud(self):
+        node = STRING_LITERAL_AST_NODE()
+        node.value = self.value
+        node.value_type = "str"
+        return node
     def __repr__(self):
         return f"TokenType = {self.type} value = {self.value}"
 

@@ -147,6 +147,10 @@ class Jayko:
             token_to_add = LOOP_TOKEN()
         elif candidate_token_str == "u8":
             token_to_add = U8_TOKEN()
+        elif candidate_token_str == "i32":
+            token_to_add = I32_TOKEN()
+        elif candidate_token_str == "str":
+            token_to_add = STR_TOKEN()
         elif candidate_token_str == ";":
             token_to_add = SEMICOLON_TOKEN()
         elif candidate_token_str == ":":
@@ -279,34 +283,18 @@ class Jayko:
         # and eventually we want it to be
         # "say" <identifier> | <expr> ";"
         self.expect("SAY_TOKEN")
+        subtree = self.expr()
+        say_node = SAY_AST_NODE()
+        say_node.value = subtree
 
-
-        # self.expect("IDENTIFIER_TOKEN")
-        # I think a better thing to do is change the expect() function so that it can accept
-        # multiple different token types, but I'm not really sure how to do that/don't really
-        # feel like figuring it out right now, but I should do it because it makes the parsing
-        # logic look a LOT better 
-        t = self.advance_tokens() # we would have normally called this in expect
-        if (t.type == "STRING_LITERAL_TOKEN" or t.type == "IDENTIFIER_TOKEN" or t.type == "INT_LITERAL_TOKEN"):
-            identifier = self.expected_token().value 
-
-            say_node = SAY_AST_NODE()
-            say_node.value = identifier 
-            say_node.route = t.type
-
-        else:
-            raise SyntaxError(f"[parse_say] Encountered an Incorrect Node Type {t.type}")
-            
 
         self.expect("SEMICOLON_TOKEN")
         return say_node
-            
 
     def parse_let(self):
         # a LET statement is 
         # "let" identifier ":=" <expr> ";"
         # "let" 
-       
      
         self.expect("LET_TOKEN") 
 
@@ -316,14 +304,14 @@ class Jayko:
         id_node_to_add.value = identifier
 
         declared_type = None
-        if self.match("COLON_TOKEN"):
-            declared_type = self.parse_type()
+        # if self.match("COLON_TOKEN"):
+        self.expect("COLON_TOKEN")
+        declared_type = self.parse_type()
 
+        id_node_to_add.value_type = declared_type
 
         self.expect("ASSIGNMENT_TOKEN")
-
         value = self.expr()
-
         self.expect("SEMICOLON_TOKEN")
 
         # assume for now that assignment node is the head of the subtree
@@ -338,18 +326,20 @@ class Jayko:
         return let_node_to_add
 
     def parse_type(self):
-        self.expect("U8_TOKEN")
-        base_type = self.expected_token().value
+            self.expect_multiple( ("I32_TOKEN", "U8_TOKEN", "STR_TOKEN") )
 
-        is_array = False
-        if self.match("LSQUARE_TOKEN"):
-            self.expect("RSQUARE_TOKEN")
-            is_array = True
+            base_type = self.expected_token().value
+            print(f"[parse_type] base type = {base_type}")
 
-        return {
-            "base": base_type,
-            "is_array": is_array
-        }
+            is_array = False
+            if self.match("LSQUARE_TOKEN"):
+                self.expect("RSQUARE_TOKEN")
+                is_array = True
+
+            return {
+                "base": base_type,
+                "is_array": is_array
+            }
     
     def parse_assignment(self):
         # an ASSIGNMENT statement is 
@@ -462,7 +452,7 @@ class Jayko:
     def traversal(self, node):
         # implements post order traversal for the AST
         print(f"PROCESSING NODE OF TYPE {node.__dict__}")
-        return node.code_gen() 
+        return node.code_gen(self.symbol_table) 
 
 
     #####################################################
@@ -510,6 +500,17 @@ class Jayko:
         if t.type != token_type:
             raise SyntaxError(f"Expected {token_type} got {t.type}")
         return t
+
+    def expect_multiple(self, token_tuple):
+        t = self.advance_tokens()
+        print(f"[expect_multiple] token_tuple = {token_tuple}")
+        for ctok in token_tuple:
+            print(f"[expect_multiple] ctok = {ctok}")
+            print(f"[expect_multiple] t.type = {t.type}")
+            if t.type == ctok:
+                return t
+        raise ValueError("The token type wasn't found in the token tuple")
+         
 
     def match(self, token_type):
         # checks the next token

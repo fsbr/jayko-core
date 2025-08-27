@@ -1,0 +1,5 @@
+let s: str = "hello world!";
+say s;
+
+let woo: str = "LETS GO CRAZY WITH IT!!!!";
+say woo;
