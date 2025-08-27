@@ -155,6 +155,14 @@ class SUB_AST_NODE:
     def __repr__(self):
         return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
 
+class SUB_UNARY_AST_NODE:
+    def __init__(self):
+        self.type = "SUB_UNARY_NODE"
+        self.value = None
+    def code_gen(self):
+        code = self.value.code_gen()
+        return f"-{code}"
+
 class MUL_AST_NODE:
     def __init__(self):
         self.type = "MUL_AST_NODE"

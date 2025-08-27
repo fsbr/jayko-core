@@ -411,7 +411,7 @@ class Jayko:
         print(f"[expr] rbp={rbp}  peek={self.peek_tokens().type}  peek.lbp={getattr(self.peek_tokens(), 'lbp', None)}  cursor={self.token_cursor}")
         t = self.advance_tokens()
 
-        if t.type in ("LPAREN_TOKEN", "LSQUARE_TOKEN"):
+        if t.type in ("LPAREN_TOKEN", "LSQUARE_TOKEN", "SUB_TOKEN"):
             left = t.nud(self)
         else:
             left = t.nud()

@@ -289,14 +289,18 @@ class SUB_TOKEN:
     def __init__(self):
         self.type = "SUB_TOKEN"
         self.lbp = 10
-    def nud(self):
+        self.unary_lbp = 50
+    def nud(self, jayko_instance):
+        right = jayko_instance.expr(self.unary_lbp)
+        node = SUB_UNARY_AST_NODE()
+        node.value = right
+        return node
     def led(self, left, jayko_instance):
         right = jayko_instance.expr(self.lbp)
-
-        add_node = SUB_AST_NODE() 
-        add_node.lvalue = left
-        add_node.rvalue = right
-        return add_node
+        node = SUB_AST_NODE() 
+        node.lvalue = left
+        node.rvalue = right
+        return node
     def __repr__(self):
         return f"TokenType = {self.type}"
 
