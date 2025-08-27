@@ -105,6 +105,14 @@ class Jayko:
                     self.candidate_tokens.append(self.token_dispatch(">="))
                     continue
 
+            if ch == "!":
+                nx = self.peek_chars()
+                if nx == "=":
+                    self.advance_chars()                # consume "!"
+                    self.advance_chars()                # consume "="
+                    self.candidate_tokens.append(self.token_dispatch("!="))
+                    continue
+
             if ch == "/":
                 nx = self.peek_chars()
                 if nx == "/":
@@ -134,6 +142,19 @@ class Jayko:
                 self.candidate_tokens.append(self.token_dispatch("".join(buf)))
                 continue
 
+            # Chars 
+            if ch == "'":
+                buf = ["'"]
+                self.advance_chars()
+                while self.raw_char_cursor < len(self.raw_characters):
+                    c = self.raw_characters[self.raw_char_cursor]
+                    buf.append(c)
+                    self.advance_chars()
+                    if c == "'":
+                        break
+                self.candidate_tokens.append(self.token_dispatch("".join(buf)))
+                continue
+
             # 6) Unknown Char
             raise SyntaxError(f"Unexpected character: {ch}")
 
@@ -151,6 +172,8 @@ class Jayko:
             token_to_add = I32_TOKEN()
         elif candidate_token_str == "str":
             token_to_add = STR_TOKEN()
+        elif candidate_token_str == "char":
+            token_to_add = CHAR_TOKEN()
         elif candidate_token_str == ";":
             token_to_add = SEMICOLON_TOKEN()
         elif candidate_token_str == ":":
@@ -185,6 +208,8 @@ class Jayko:
             token_to_add = LEQ_TOKEN()
         elif candidate_token_str == ">=":
             token_to_add = GEQ_TOKEN()
+        elif candidate_token_str == "!=":
+            token_to_add = NEQ_TOKEN()
         elif candidate_token_str == ">":
             token_to_add = GT_TOKEN()
         elif candidate_token_str == "%":
@@ -203,6 +228,9 @@ class Jayko:
             token_to_add.value = str(candidate_token_str)
         elif candidate_token_str[0] == "\"" and candidate_token_str[-1] == "\"":
             token_to_add = STRING_LITERAL_TOKEN()
+            token_to_add.value = candidate_token_str
+        elif candidate_token_str[0] == "'" and candidate_token_str[-1] == "'":
+            token_to_add = CHAR_LITERAL_TOKEN()
             token_to_add.value = candidate_token_str
         else:
             print(f"candidate token str {candidate_token_str} not found")
@@ -326,7 +354,7 @@ class Jayko:
         return let_node_to_add
 
     def parse_type(self):
-            self.expect_multiple( ("I32_TOKEN", "U8_TOKEN", "STR_TOKEN") )
+            self.expect_multiple( ("I32_TOKEN", "U8_TOKEN", "STR_TOKEN", "CHAR_TOKEN") )
 
             base_type = self.expected_token().value
             print(f"[parse_type] base type = {base_type}")

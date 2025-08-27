@@ -65,6 +65,13 @@ class STR_TOKEN:
     def __repr__(self):
         return f"TokenType = {self.type}"
 
+class CHAR_TOKEN:
+    def __init__(self):
+        self.type = "CHAR_TOKEN"
+        self.value = "char" 
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
 class DOT_TOKEN:
     def __init__(self):
         self.type = "DOT_TOKEN"
@@ -99,6 +106,19 @@ class STRING_LITERAL_TOKEN:
         node = STRING_LITERAL_AST_NODE()
         node.value = self.value
         node.value_type = "str"
+        return node
+    def __repr__(self):
+        return f"TokenType = {self.type} value = {self.value}"
+
+class CHAR_LITERAL_TOKEN:
+    def __init__(self):
+        self.type = "CHAR_LITERAL_TOKEN"
+        self.lbp = 0 # no idea what it should actually be, so just picking the same as the other literals
+        self.value = None
+    def nud(self):
+        node = STRING_LITERAL_AST_NODE()
+        node.value = self.value
+        node.value_type = "char"
         return node
     def __repr__(self):
         return f"TokenType = {self.type} value = {self.value}"
@@ -169,6 +189,7 @@ class LSQUARE_TOKEN:
     def led(self, left, jayko_instance):
         node = DA_INDEX_AST_NODE()
         node.target = left
+        print(f"[lsquare_token] node.target={node.target}")
         node.index = jayko_instance.expr()
         jayko_instance.expect("RSQUARE_TOKEN")
         return node
@@ -226,6 +247,21 @@ class EQUALITY_TOKEN:
         
     def __repr__(self):
         return f"TokenType = {self.type}"
+
+class NEQ_TOKEN:
+    def __init__(self):
+        self.type = "NEQ_TOKEN"
+        self.lbp = 5
+    def led(self, left, jayko_instance):
+        right = jayko_instance.expr(self.lbp)
+
+        equality_node = NEQ_AST_NODE()
+        equality_node.lvalue = left
+        equality_node.rvalue = right
+        return equality_node
+        
+    def __repr__(self):
+        return f"TokenType != {self.type}"
 
 class LT_TOKEN:
     def __init__(self):

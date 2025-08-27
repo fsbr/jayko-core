@@ -21,6 +21,12 @@ TYPE_INFO = {
             "printf": "%s",
             "size": None, # dynamic
             "category": "pointer",
+            },
+        "char": {
+            "c_type": "char",
+            "printf": "%c",
+            "size": None, # dynamic
+            "category": "pointer",
             }
 }
 
@@ -114,6 +120,18 @@ class EQUALITY_AST_NODE:
         left_code = self.lvalue.code_gen(symbol_table)
         right_code = self.rvalue.code_gen(symbol_table)
         return f"({left_code} == {right_code})"
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
+
+class NEQ_AST_NODE:
+    def __init__(self):
+        self.type = "NEQ_AST_NODE"
+        self.lvalue = None
+        self.rvalue = None
+    def code_gen(self, symbol_table):
+        left_code = self.lvalue.code_gen(symbol_table)
+        right_code = self.rvalue.code_gen(symbol_table)
+        return f"({left_code} != {right_code})"
     def __repr__(self):
         return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
 
@@ -308,16 +326,29 @@ class DA_APPEND_AST_NODE:
 class DA_INDEX_AST_NODE:
     def __init__(self):
         self.type = "DA_INDEX_AST_NODE"
-        self.target = None          # array
-        self.target_type = None     # type of the target
-        self.index = None           # index we want to index into
+        self.target = None                          # array
+        self.target_type = None                     # type of the target
+        self.index = None                           # index we want to index into
     def code_gen(self, symbol_table):
         # Point p4 = PointArray_get(&xs, 0);
+        print(f"[da_index_ast_node], self.target_type = {self.target_type}")
+        print(f"[da_index_ast_node], self.target = {self.target}")
+
+        target_value = self.target.value
         arr = self.target.code_gen(symbol_table)
         idx = self.index.code_gen(symbol_table)
+        if self.target.value in symbol_table:
+            print("YES\n\n\n")
+            print(f"symbol_table[target_value] = {symbol_table[target_value]}")
+            if symbol_table[target_value]["base"] == "str":
+                print("GENERATE NEW CODE HERE")
+
+                return f"{arr}[{idx}]"
+
         return f"{arr}.items[{idx}]"
     def __repr__(self):
         return f"AST_NODE type = {self.type}"
+
 
 class DA_INDEX_ASSIGN_AST_NODE:
     def __init__(self):

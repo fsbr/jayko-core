@@ -1,5 +1,17 @@
-let s: str = "hello world!";
-say s;
+//let s: str = "hello world!";
+//say s;
 
 let woo: str = "LETS GO CRAZY WITH IT!!!!";
 say woo;
+
+let z: char = woo[3];
+say z;
+
+let i: i32 = 0;
+let terminator: char = '\0';
+
+loop woo[i] != terminator {
+    i = i + 1;
+}
+
+say i;
