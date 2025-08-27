@@ -223,7 +223,7 @@ class Jayko:
         elif candidate_token_str.isnumeric():
             token_to_add = INT_LITERAL_TOKEN()
             token_to_add.value = int(candidate_token_str)
-        elif candidate_token_str.isalnum():
+        elif candidate_token_str.replace("_","").isalnum():
             token_to_add = IDENTIFIER_TOKEN()
             token_to_add.value = str(candidate_token_str)
         elif candidate_token_str[0] == "\"" and candidate_token_str[-1] == "\"":
@@ -470,6 +470,7 @@ class Jayko:
         f.write("#include <stdint.h>\n")
         f.write("#include \"c_src/jayko_array.h\"\n")
         f.write("DA_TYPEDEF(uint8_t, Array_u8);\n")
+        f.write("DA_TYPEDEF(uint8_t, Array_i32);\n")
         f.write("\n")
         f.write("int main() {\n")   
         f.write(self.big_string)

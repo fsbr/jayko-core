@@ -1,0 +1,48 @@
+let cell_count: i32 = 30;
+let tape: u8[] = [];            // the spec calls for u8
+
+// initialize the tape to 0
+let dp: i32 = 0;                 // data pointer: associated with the tape
+let ip: i32 = 0;                 // instruction pointer: associated with the source code
+                                 
+loop dp < cell_count {
+    tape.append(0);             // initialize tape to 0
+    dp=dp+1;                    // increment loop counter
+}
+dp = 0;                         // data pointer starts at 0 for program execution
+
+
+let source: str = ">++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++>+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++>++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++>++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++>++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++>+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++";   // even though there is only one element we def want a string
+let source_count: i32 = 0;
+let ch: char = source[0];
+let out: char = 'x';            // if its still x something is wrong
+
+let pseudo_stack: i32 = 0;
+
+loop source[ip] != '\0' {       // the main loop!!!
+    ch = source[ip];            // sucks that we have to declare then print the declaration!
+    ip = ip+1;
+
+    if ch == '>' {
+        dp=dp+1;
+    } else if ch == '<' {
+        dp=dp-1;
+    } else if ch == '+' {
+        tape[dp] = tape[dp] + 1;
+    } else if ch == '-' {
+        tape[dp] = tape[dp] - 1;
+    } else if ch == '.' {
+        out = tape[dp];
+        say out;
+        
+    } else if ch == '[' {           // i have to sleep soon lmao but this is so funny
+        pseudo_stack = dp;
+    }
+}
+
+dp = 0;
+loop dp < 20 {
+    out = tape[dp]; 
+    say out;
+    dp= dp + 1;                 // its probably not too hard to impelment +=
+}
