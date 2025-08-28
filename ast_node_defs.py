@@ -255,7 +255,7 @@ class SAY_AST_NODE:
         else:
             type_info = self.value.value_type
         format_specifier = TYPE_INFO[type_info]["printf"]
-        return f"\tprintf(\"{format_specifier}\\n\",{self.value.value});\n"
+        return f"\tprintf(\"{format_specifier}\",{self.value.value});\n"
     def __repr__(self):
         return f"AST_NODE type = {self.type}, value = {self.value}"
 

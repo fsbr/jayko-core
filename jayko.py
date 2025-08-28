@@ -13,6 +13,7 @@ class Jayko:
 
         self.candidate_tokens = []          # breaks up the text into the individual parts of speech
         self.token_cursor = 0
+        self.current_line = 1               # track line number so we have a non zero error output
         
         self.root = []                      # root is where the ast is formed, in order
 
@@ -46,6 +47,9 @@ class Jayko:
 
             # 1) Skip whitespace
             if ch.isspace():
+                if ch == "\n":
+                    self.current_line +=1 
+                    print(f"{self.current_line}")
                 self.advance_chars()
                 continue
 
@@ -121,7 +125,9 @@ class Jayko:
                     while ch != "\n":
                         ch = self.raw_characters[ self.raw_char_cursor ]
                         self.advance_chars()
+                    self.current_line+=1
                     continue
+
 
             # 4) Single-char punctuators/operators
             if ch in ("*", "+", "-", ":", ";", "%", "{", "}", "=", "<", ">", "(",")", "[", "]", "."):
@@ -156,7 +162,12 @@ class Jayko:
                 continue
 
             # 6) Unknown Char
-            raise SyntaxError(f"Unexpected character: {ch}")
+            raise SyntaxError(f"l{self.current_line}: Unexpected character: {ch}")
+
+        # add the EOF_TOKEN() instead of doing it with guards in advance, the guards should still be safe
+        eof_token = EOF_TOKEN()
+        eof_token.line_no = self.current_line
+        self.candidate_tokens.append(eof_token)
 
     def token_dispatch(self, candidate_token_str):
         # this function should look at the candidate_token_str and form the token object
@@ -236,8 +247,12 @@ class Jayko:
             print(f"candidate token str {candidate_token_str} not found")
             print("Exiting...")
             quit()
-
         print(f"[token dispatch] about to return {token_to_add}")
+
+        # add the line number so we dont have completely zero error output
+        if token_to_add:
+            token_to_add.line_no = self.current_line
+
         return token_to_add
 
     def parse(self):
@@ -469,8 +484,8 @@ class Jayko:
         f.write("#include <stdio.h>\n")
         f.write("#include <stdint.h>\n")
         f.write("#include \"c_src/jayko_array.h\"\n")
-        f.write("DA_TYPEDEF(uint8_t, Array_u8);\n")
-        f.write("DA_TYPEDEF(int, Array_i32);\n")
+        f.write("DA_TYPEDEF(uint8_t, Array_u8);\n")             # eventually we want our program to know about the types that have a dynamic array and 
+        f.write("DA_TYPEDEF(int, Array_i32);\n")                # only deefine them once at the top of the program.
         f.write("\n")
         f.write("int main() {\n")   
         f.write(self.big_string)
@@ -517,6 +532,8 @@ class Jayko:
         return self.candidate_tokens[ self.token_cursor ] # self.token_cursor + 1 "works"
 
     def advance_tokens(self):
+        if self.token_cursor >= len(self.candidate_tokens):
+            return EOF_TOKEN()
         value = self.candidate_tokens[ self.token_cursor ]
         self.token_cursor +=1
         return value
@@ -527,7 +544,14 @@ class Jayko:
     def expect(self, token_type):
         t = self.advance_tokens()
         if t.type != token_type:
-            raise SyntaxError(f"Expected {token_type} got {t.type}")
+            prev_token_index = self.token_cursor - 2 
+            print(f"[expect] prev_token_index = {prev_token_index}")
+            if prev_token_index >= 0:
+                prev_token = self.candidate_tokens[ self.token_cursor - 2]  # since theres a call to advnace_tokens(), the "previous token" in terms of parsing errors, was 2 tokens ago
+                print(f"prev_token = {prev_token}")
+                raise SyntaxError(f"Expected {token_type} got {t.type} on L:{prev_token.line_no} - {t.line_no}")
+            else:
+                raise SyntaxError(f"Expected {token_type} got {t.type} around L:{t.line_no}")
         return t
 
     def expect_multiple(self, token_tuple):

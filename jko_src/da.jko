@@ -1,4 +1,5 @@
-let x: i32[] = [];
+let x: i32[] = []
+
 
 x.append(5);
 let i: i32 = 0;

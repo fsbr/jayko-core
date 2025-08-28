@@ -5,6 +5,7 @@ from ast_node_defs import *
 class LET_TOKEN:
     def __init__(self):
         self.type = "LET_TOKEN"
+        self.line_no = None
     def __repr__(self):
         return f"TokenType = {self.type}"
 
@@ -13,6 +14,7 @@ class IDENTIFIER_TOKEN:
         self.type = "IDENTIFIER_TOKEN"
         self.value = None
         self.lbp = 0
+        self.line_no = None
     def nud(self):
         node = IDENTIFIER_AST_NODE()
         node.value = self.value
@@ -24,6 +26,7 @@ class ASSIGNMENT_TOKEN:
     def __init__(self):
         self.type = "ASSIGNMENT_TOKEN"
         self.lbp = 5
+        self.line_no = None
     def led(self, left, jayko_instance):
         node = ASSIGNMENT_AST_NODE()
         node.lvalue = left
@@ -37,6 +40,7 @@ class INT_LITERAL_TOKEN:
         self.type = "INT_LITERAL_TOKEN"
         self.lbp = 0 # 1 works
         self.value = None
+        self.line_no = None
     def nud(self):
         node = INT_LITERAL_AST_NODE()
         node.value = self.value
@@ -48,6 +52,7 @@ class U8_TOKEN:
     def __init__(self):
         self.type = "U8_TOKEN"
         self.value = "u8"
+        self.line_no = None
     def __repr__(self):
         return f"TokenType = {self.type}"
 
@@ -55,6 +60,7 @@ class I32_TOKEN:
     def __init__(self):
         self.type = "I32_TOKEN"
         self.value = "i32"
+        self.line_no = None
     def __repr__(self):
         return f"TokenType = {self.type}"
 
@@ -62,6 +68,7 @@ class STR_TOKEN:
     def __init__(self):
         self.type = "STR_TOKEN"
         self.value = "str" 
+        self.line_no = None
     def __repr__(self):
         return f"TokenType = {self.type}"
 
@@ -69,6 +76,7 @@ class CHAR_TOKEN:
     def __init__(self):
         self.type = "CHAR_TOKEN"
         self.value = "char" 
+        self.line_no = None
     def __repr__(self):
         return f"TokenType = {self.type}"
 
@@ -76,6 +84,7 @@ class DOT_TOKEN:
     def __init__(self):
         self.type = "DOT_TOKEN"
         self.lbp = 100 
+        self.line_no = None
     def led(self, left, jayko_instance):
         method_token = jayko_instance.expect("IDENTIFIER_TOKEN")
         print("[dot_token.led() method_token = {method_token}")
@@ -102,6 +111,7 @@ class STRING_LITERAL_TOKEN:
         self.type = "STRING_LITERAL_TOKEN"
         self.lbp = 0 # no idea what it should actually be, so just picking the same as the other literals
         self.value = None
+        self.line_no = None
     def nud(self):
         node = STRING_LITERAL_AST_NODE()
         node.value = self.value
@@ -115,6 +125,7 @@ class CHAR_LITERAL_TOKEN:
         self.type = "CHAR_LITERAL_TOKEN"
         self.lbp = 0 # no idea what it should actually be, so just picking the same as the other literals
         self.value = None
+        self.line_no = None
     def nud(self):
         node = STRING_LITERAL_AST_NODE()
         node.value = self.value
@@ -126,6 +137,7 @@ class CHAR_LITERAL_TOKEN:
 class SAY_TOKEN:
     def __init__(self):
         self.type = "SAY_TOKEN"
+        self.line_no = None
     def __repr__(self):
         return f"TokenType = {self.type}"
         
@@ -133,6 +145,7 @@ class SEMICOLON_TOKEN:
     def __init__(self):
         self.lbp = 0 
         self.type = "SEMICOLON_TOKEN"
+        self.line_no = None
     def __repr__(self):
         return f"TokenType = {self.type}"
 
@@ -140,6 +153,7 @@ class LBRACE_TOKEN:
     def __init__(self):
         self.lbp = 0
         self.type = "LBRACE_TOKEN"
+        self.line_no = None
     def __repr__(self):
         return f"TokenType = {self.type}"
 
@@ -147,6 +161,7 @@ class RBRACE_TOKEN:
     def __init__(self):
         self.lbp = 0
         self.type = "RBRACE_TOKEN"
+        self.line_no = None
     def __repr__(self):
         return f"TokenType = {self.type}"
 
@@ -154,6 +169,7 @@ class LPAREN_TOKEN:
     def __init__(self,):
         self.type = "LPAREN_TOKEN"
         #parse inside parenthesis
+        self.line_no = None
     def nud(self, jayko_instance):
         expr_node = jayko_instance.expr(0)
         jayko_instance.expect("RPAREN_TOKEN")
@@ -166,12 +182,14 @@ class RPAREN_TOKEN:
     def __init__(self):
         self.type = "RPAREN_TOKEN"
         self.lbp = 0
+        self.line_no = None
     def __repr__(self):
         return f"TokenType = {self.type}"
 
 class COLON_TOKEN:
     def __init__(self):
         self.type = "COLON_TOKEN"
+        self.line_no = None
     def __repr__(self):
         return f"TokenType = {self.type}"
 
@@ -179,6 +197,7 @@ class LSQUARE_TOKEN:
     def __init__(self):
         self.type = "LSQUARE_TOKEN"
         self.lbp = 100
+        self.line_no = None
     def nud(self, jayko_instance):
         nx = jayko_instance.peek_tokens()
         if nx.type == "RSQUARE_TOKEN":
@@ -200,36 +219,42 @@ class RSQUARE_TOKEN:
     def __init__(self):
         self.type = "RSQUARE_TOKEN"
         self.lbp = 0
+        self.line_no = None
     def __repr__(self):
         return f"TokenType = {self.type}"
 
 class IF_TOKEN:
     def __init__(self):
         self.type = "IF_TOKEN"
+        self.line_no = None
     def __repr__(self):
         return f"TokenType = {self.type}"
 
 class LOOP_TOKEN:
     def __init__(self):
         self.type = "LOOP_TOKEN"
+        self.line_no = None
     def __repr__(self):
         return f"TokenType = {self.type}"
     
 class ELSE_TOKEN:
     def __init__(self):
         self.type = "ELSE_TOKEN"
+        self.line_no = None
     def __repr__(self):
         return f"TokenType = {self.type}"
 
 class TRUE_TOKEN:
     def __init__(self):
         self.type = "TRUE_TOKEN"
+        self.line_no = None
     def __repr__(self):
         return f"TokenType = {self.type}"
 
 class FALSE_TOKEN:
     def __init__(self):
         self.type = "TRUE_TOKEN"
+        self.line_no = None
     def __repr__(self):
         return f"TokenType = {self.type}"
 
@@ -237,6 +262,7 @@ class EQUALITY_TOKEN:
     def __init__(self):
         self.type = "EQUALITY_TOKEN"
         self.lbp = 5
+        self.line_no = None
     def led(self, left, jayko_instance):
         right = jayko_instance.expr(self.lbp)
 
@@ -252,6 +278,7 @@ class NEQ_TOKEN:
     def __init__(self):
         self.type = "NEQ_TOKEN"
         self.lbp = 5
+        self.line_no = None
     def led(self, left, jayko_instance):
         right = jayko_instance.expr(self.lbp)
 
@@ -267,6 +294,7 @@ class LT_TOKEN:
     def __init__(self):
         self.type = "LT_TOKEN"
         self.lbp = 6
+        self.line_no = None
     def led(self, left, jayko_instance):
         right = jayko_instance.expr(self.lbp)
 
@@ -282,6 +310,7 @@ class GT_TOKEN:
     def __init__(self):
         self.type = "GT_TOKEN"
         self.lbp = 6
+        self.line_no = None
     def led(self, left, jayko_instance):
         right = jayko_instance.expr(self.lbp)
 
@@ -297,6 +326,7 @@ class LEQ_TOKEN:
     def __init__(self):
         self.type = "LEQ_TOKEN"
         self.lbp = 6
+        self.line_no = None
     def led(self, left, jayko_instance):
         right = jayko_instance.expr(self.lbp)
 
@@ -313,6 +343,7 @@ class GEQ_TOKEN:
     def __init__(self):
         self.type = "GEQ_TOKEN"
         self.lbp = 6
+        self.line_no = None
     def led(self, left, jayko_instance):
         right = jayko_instance.expr(self.lbp)
 
@@ -328,6 +359,7 @@ class ADD_TOKEN:
     def __init__(self):
         self.type = "ADD_TOKEN"
         self.lbp = 10
+        self.line_no = None
     def led(self, left, jayko_instance):
         print("ADD_TOKEN.led")
         print(f"[led {self.type}] lbp={self.lbp}  cursor={jayko_instance.token_cursor}")
@@ -345,6 +377,7 @@ class SUB_TOKEN:
         self.type = "SUB_TOKEN"
         self.lbp = 10
         self.unary_lbp = 50
+        self.line_no = None
     def nud(self, jayko_instance):
         right = jayko_instance.expr(self.unary_lbp)
         node = SUB_UNARY_AST_NODE()
@@ -363,6 +396,7 @@ class MUL_TOKEN:
     def __init__(self):
         self.type = "MUL_TOKEN"
         self.lbp = 20
+        self.line_no = None
     def led(self, left, jayko_instance):
         print("MUL_TOKEN.led")
         print(f"[led {self.type}] lbp={self.lbp}  cursor={jayko_instance.token_cursor}")
@@ -379,6 +413,7 @@ class MOD_TOKEN:
     def __init__(self):
         self.type = "MOD_TOKEN"
         self.lbp = 20
+        self.line_no = None
     def led(self, left, jayko_instance):
         #print("MUL_TOKEN.led")
         #print(f"[led {self.type}] lbp={self.lbp}  cursor={jayko_instance.token_cursor}")
@@ -395,5 +430,6 @@ class EOF_TOKEN:
     def __init__(self):
         self.type = "EOF_TOKEN"
         self.lbp = 0
+        self.line_no = None
     def __repr__(self):
         return f"TokenType = {self.type}"
