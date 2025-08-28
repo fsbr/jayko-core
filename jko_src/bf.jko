@@ -16,9 +16,12 @@ let source: str = ">++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 let source_count: i32 = 0;
 let ch: char = source[0];
 let out: char = 'x';            // if its still x something is wrong
+let stack_length = 10;
+let pseudo_stack: i32[] = [];
+let i: i32 = 0;                 // loop counter for initializing  our fake stack
+let psp: i32 = 0;               // pseudo stack pointer
 
-let pseudo_stack: i32 = 0;
-
+//loop i < stack_length { pseudo_stack.append(0); } 
 loop source[ip] != '\0' {       // the main loop!!!
     ch = source[ip];            // sucks that we have to declare then print the declaration!
     ip = ip+1;

@@ -470,7 +470,7 @@ class Jayko:
         f.write("#include <stdint.h>\n")
         f.write("#include \"c_src/jayko_array.h\"\n")
         f.write("DA_TYPEDEF(uint8_t, Array_u8);\n")
-        f.write("DA_TYPEDEF(uint8_t, Array_i32);\n")
+        f.write("DA_TYPEDEF(int, Array_i32);\n")
         f.write("\n")
         f.write("int main() {\n")   
         f.write(self.big_string)

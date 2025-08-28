@@ -1,10 +1,17 @@
-let x: u8[] = [];
+let x: i32[] = [];
+
 x.append(5);
-x[0] = -2;
-let z: u8 = x[0];
-say z;          // expects 254
-//
-let i: i32 = -1000;
-z = 32;
-say z;          // pratt kind of just works
-say i;
+let i: i32 = 0;
+loop i < 1 {
+    let x_i: i32 = x[i];
+    say x_i;
+    i=i+1;
+}
+//x[0] = -2;
+//let z: u8 = x[0];
+//say z;          // expects 254
+////
+//let i: i32 = -1000;
+//z = 32;
+//say z;          // pratt kind of just works
+//say i;
