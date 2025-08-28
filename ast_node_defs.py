@@ -297,7 +297,7 @@ class LOOP_AST_NODE:
     def code_gen(self, symbol_table):
         cond = self.loop_condition.code_gen(symbol_table)
         loop_block = self.loop_block.code_gen(symbol_table)
-        return f"\twhile ( {cond}) {{ {loop_block} }} "
+        return f"\twhile ( {cond})\n\t {{ {loop_block} }}\n "
     def __repr__(self):
         return f"AST_NODE type = {self.type}, with loop_condition = {self.loop_condition}, and loop_block = {self.loop_block}" 
 
