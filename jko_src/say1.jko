@@ -1,1 +1,5 @@
-say 1;
+//say 1; say "\n";
+let x: i32 = 69;
+say x; say "\n";
+say (1+69);
+say "hello\n";

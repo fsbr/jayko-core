@@ -188,6 +188,19 @@ class ADD_AST_NODE:
         self.type = "ADD_AST_NODE"
         self.lvalue = None
         self.rvalue = None
+        self.value_type = None
+#    def type_check(self, symbol_table):                # is traversing the tree 2x the only wya?
+#        ltype = self.lvalue.type_check(symbol_table)
+#        rtype = self.rvalue.type_check(symbol_table)
+#        if ltype == rtype:
+#            self.value_type = ltype
+#        elif ltype == None and rtype:
+#            self.value_type = rtype
+#        elif ltype and rtype == None:
+#            self.value_type = ltype
+#        else:
+#            print("not sure\n")
+
     def code_gen(self, symbol_table):
         print("Generating code for ADD")
         left_code = self.lvalue.code_gen(symbol_table)
@@ -260,14 +273,24 @@ class SAY_AST_NODE:
         self.value = None
         self.route = None                               # route is to dispatch to the correct code generation
     def code_gen(self, symbol_table):
-        what_to_print = self.value.value                # this sucks but idk how to wire say to expr()
+        svv = self.value                # this sucks but idk how to wire say to expr()
+        what_to_print = self.value.code_gen(symbol_table)
 
-        if what_to_print in symbol_table:
-            type_info = symbol_table[what_to_print]["base"]
-        else:
-            type_info = self.value.value_type
+
+        if hasattr(svv, "value_type"):
+            if svv.value_type != None:
+                print(f"[say_ast_node] svv.value_type !=None")
+                type_info = svv.value_type
+            else:
+                #try:
+                #    type_info = symbol_table[what_to_print]["base"]
+                #except KeyError:
+                #    print("[say_ast_node] in exception")
+                ##    # type_info = self.value.value_type
+                type_info = "i32"                   # clear hack until we figure out type checking. probably breaks u8
+
         format_specifier = TYPE_INFO[type_info]["printf"]
-        return f"\tprintf(\"{format_specifier}\",{self.value.value});\n"
+        return f"\tprintf(\"{format_specifier}\",{what_to_print});\n"
     def __repr__(self):
         return f"AST_NODE type = {self.type}, value = {self.value}"
 

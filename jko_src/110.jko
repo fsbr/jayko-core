@@ -14,7 +14,7 @@ let nt: u8 = 0;                                     // our language doesnt suppo
                                                     // values, thats probably good
 let iters: i32 = 256;                               // number of times to iterate the automata
 
-let tape_length: i32 = 1024;                         // the length of the tape
+let tape_length: i32 = 256;                         // the length of the tape
 let i: i32 = 0;                                     // loop counter for working on the tape
 let iter_counter: i32 = 0;                          // loop counter for the total iterations
 loop i < tape_length {                              // initialize tapes to 0
@@ -36,10 +36,10 @@ i = 1;                                              // reset tape to 1, because 
  tape[8] = 0;                                                   //
  tape[9] = 0;                                                   //
  //tape[254] = 1;                                                 // 254 is the second to last
- tape[1022] = 1;
+ tape[tape_length - 2] = 1;
                                                                 // element but its kind of how we
                                                                 // need to do it for valid data
-loop iter_counter < 1024 {
+loop iter_counter < iters {
     loop i < (tape_length - 1) {                        // where the magic happens
         tape_i = tape[i];                               // current cell
         //say tape_i; say "";
