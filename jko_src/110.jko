@@ -1,0 +1,91 @@
+// 110 Cellular Automata
+// If we can get it to work, we are provably turing complete!
+// Thomas Fuller - August 2025
+
+
+let tape: u8[] = [];                                // the tape where the automata is generated
+
+let tape_i: u8 = 0;                                 // index holder variables
+let im1: u8 = 0; 
+let ip1: u8 = 0;
+
+let new_tape: u8[] = [];                            // each time step we will generate this new_tape
+let nt: u8 = 0;                                     // our language doesnt support non initalized
+                                                    // values, thats probably good
+let iters: i32 = 256;                               // number of times to iterate the automata
+
+let tape_length: i32 = 1024;                         // the length of the tape
+let i: i32 = 0;                                     // loop counter for working on the tape
+let iter_counter: i32 = 0;                          // loop counter for the total iterations
+loop i < tape_length {                              // initialize tapes to 0
+    tape.append(0); 
+    new_tape.append(0);
+    i = i+1; }   
+i = 1;                                              // reset tape to 1, because the initial spot
+
+//tape[0] = 1; tape[1] = 1; tape[2] = 1;              // rule 110 so i guess?
+//tape[3] = 1; tape[10] = 1; tape[11] = 1; tape[12] = 0;
+ tape[0] = 0;                                                   //
+ tape[1] = 0;                                                   //
+ tape[2] = 0;                                                   //
+ tape[3] = 0;                                                   //
+ tape[4] = 0;                                                   //
+ tape[5] = 0;                                                   //
+ tape[6] = 0;                                                   //
+ tape[7] = 0;                                                   //
+ tape[8] = 0;                                                   //
+ tape[9] = 0;                                                   //
+ //tape[254] = 1;                                                 // 254 is the second to last
+ tape[1022] = 1;
+                                                                // element but its kind of how we
+                                                                // need to do it for valid data
+loop iter_counter < 1024 {
+    loop i < (tape_length - 1) {                        // where the magic happens
+        tape_i = tape[i];                               // current cell
+        //say tape_i; say "";
+
+
+        im1 = tape[i-1];                                // tape value at previous 
+        ip1 = tape[i+1];                                // tape value at next
+        //say "["; say im1; say tape_i; say ip1; say "]";
+
+        if (im1 == 1 and tape_i == 1 and ip1 == 1) {
+            new_tape[i] = 0;
+            //say "c1]";
+        } else if im1 == 1 and tape_i == 1 and ip1 == 0 {
+            new_tape[i] = 1;
+            //say "c2]";
+        } else if im1 == 1 and tape_i == 0 and ip1 == 1 {
+            new_tape[i] = 1;
+            //say "c3]";
+        } else if im1 == 1 and tape_i == 0 and ip1 == 0 {
+            new_tape[i] = 0;
+            //say "c4]";
+        } else if im1 == 0 and tape_i == 1 and ip1 == 1 {
+            new_tape[i] = 1;
+            //say "c5]";
+        } else if im1 == 0 and tape_i == 1 and ip1 == 0 {
+            new_tape[i] = 1;
+            //say "c6]";
+        } else if im1 == 0 and tape_i == 0 and ip1 == 1 {
+            new_tape[i] = 1;
+            //say "c7]";
+        } else if im1 == 0 and tape_i == 0 and ip1 == 0 {
+            new_tape[i] = 0;
+            //say "c8]";
+        }
+
+        i = i+1;
+
+    }
+    // tape = new_tape;     we have to manually overwrite it i think for now
+    let j: i32 = 0;
+    loop j < tape_length { tape[j] = new_tape[j]; j=j+1; } 
+    
+    //say "\n\nNEW TAPE IS\n";
+    i = 0;                      // reset loop counter for this loop only
+    loop i < tape_length { nt = tape[i]; say nt; i=i+1;} say "\n";
+    iter_counter = iter_counter + 1;
+    i = 1;
+}
+
