@@ -25,7 +25,7 @@ TYPE_INFO = {
         "char": {
             "c_type": "char",
             "printf": "%c",
-            "size": None, # dynamic
+            "size": 1, # dynamic
             "category": "pointer",
             }
 }
@@ -115,6 +115,7 @@ class EQUALITY_AST_NODE:
         self.type = "EQUALITY_AST_NODE"
         self.lvalue = None
         self.rvalue = None
+        self.value_type = None
     def code_gen(self, symbol_table):
         print("Generating code for EQUALITY")
         left_code = self.lvalue.code_gen(symbol_table)
@@ -214,6 +215,7 @@ class SUB_AST_NODE:
         self.type = "SUB_AST_NODE"
         self.lvalue = None
         self.rvalue = None
+        self.value_type = None
     def code_gen(self, symbol_table):
         left_code = self.lvalue.code_gen(symbol_table)
         right_code = self.rvalue.code_gen(symbol_table)
@@ -225,6 +227,7 @@ class SUB_UNARY_AST_NODE:
     def __init__(self):
         self.type = "SUB_UNARY_NODE"
         self.value = None
+        self.value_type = None
     def code_gen(self, symbol_table):
         code = self.value.code_gen(symbol_table)
         return f"-{code}"
@@ -234,6 +237,7 @@ class MUL_AST_NODE:
         self.type = "MUL_AST_NODE"
         self.lvalue = None
         self.rvalue = None
+        self.value_type = None
     def code_gen(self, symbol_table):
         print("Generating code for MUL")
         left_code = self.lvalue.code_gen(symbol_table)
@@ -267,6 +271,7 @@ class MOD_AST_NODE:
     def __repr__(self):
         return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
 
+# we can expect a lot of errors to come from this because not every node implements .value_type yet.
 class SAY_AST_NODE:
     def __init__(self):
         self.type = "SAY_AST_NODE"
@@ -276,19 +281,13 @@ class SAY_AST_NODE:
         svv = self.value                # this sucks but idk how to wire say to expr()
         what_to_print = self.value.code_gen(symbol_table)
 
-
         if hasattr(svv, "value_type"):
             if svv.value_type != None:
-                print(f"[say_ast_node] svv.value_type !=None")
                 type_info = svv.value_type
+            elif hasattr(svv, "value"):               # this is so bad.
+                type_info = symbol_table[svv.value]["base"]
             else:
-                #try:
-                #    type_info = symbol_table[what_to_print]["base"]
-                #except KeyError:
-                #    print("[say_ast_node] in exception")
-                ##    # type_info = self.value.value_type
                 type_info = "i32"                   # clear hack until we figure out type checking. probably breaks u8
-
         format_specifier = TYPE_INFO[type_info]["printf"]
         return f"\tprintf(\"{format_specifier}\",{what_to_print});\n"
     def __repr__(self):

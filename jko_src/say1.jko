@@ -1,5 +1,10 @@
-//say 1; say "\n";
+say 1; say "\n";
 let x: i32 = 69;
 say x; say "\n";
-say (1+69);
+say (1-69);
 say "hello\n";
+//
+let y: u8 = 24;
+say y; say "\n";
+
+say 3 == 3; say "\n";

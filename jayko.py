@@ -1,3 +1,4 @@
+#!/usr/bin/python3 -i
 #  FRESH START FOR JAYKO
 import sys, subprocess
 from token_defs import *
