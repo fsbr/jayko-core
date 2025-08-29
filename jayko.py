@@ -213,6 +213,8 @@ class Jayko:
             token_to_add = SUB_TOKEN()
         elif candidate_token_str == "==":
             token_to_add = EQUALITY_TOKEN()
+        elif candidate_token_str == "and":
+            token_to_add = AND_TOKEN()
         elif candidate_token_str == "<":
             token_to_add = LT_TOKEN()
         elif candidate_token_str == "<=":
@@ -296,16 +298,16 @@ class Jayko:
                 print(f"We do not know how to process the token {current_token}")
                 quit()
 
-    def parse_index(self):
-        node = DA_INDEX_AST_NODE()
-        identifier = self.candidate_tokens[ self.token_cursor ]
-        node.target = identifier.value
-        node.target_type = self.symbol_table[node.target]
+    #def parse_index(self):
+    #    node = DA_INDEX_AST_NODE()
+    #    identifier = self.candidate_tokens[ self.token_cursor ]
+    #    node.target = identifier.value
+    #    node.target_type = self.symbol_table[node.target]
 
-        self.expect("LSQUARE_TOKEN")
-        node.index = self.expr()
-        self.expect("RSQUARE_TOKEN")
-        return node
+    #    self.expect("LSQUARE_TOKEN")
+    #    node.index = self.expr()
+    #    self.expect("RSQUARE_TOKEN")
+    #    return node
 
     def parse_block(self):
         print("[parse_block], entered")

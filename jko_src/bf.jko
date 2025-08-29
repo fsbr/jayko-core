@@ -1,3 +1,4 @@
+// BF INTERPRETER.  DEFINITELY A MILESTONE IN MY PROGRAMMING JOURNEY
 // this may be the least readable, most difficult to work in programming language
 // made by a human being.
 let cell_count: i32 = 20;
@@ -17,10 +18,11 @@ dp = 0;                         // data pointer starts at 0 for program executio
 // let source: str = "[++]";     // wow it actually counted by 2
 // let source: str = "+[>.+<]";
 let source: str = "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.";
-//let source: str = "++++[->+++<]+[->++++<].";
+//let source: str = ">+++++[<+++++++>>>>++<<<-]<[>++>+++>+<<<-]>++.>.>--.>.";
 let source_count: i32 = 0;
 let ch: char = source[0];
-let out: char = 'x';            // if its still x something is wrong
+let out: char = 'x';            // if its still x something is wrong... we can't declare an empty
+                                // character yet.
 let n_out: u8 = 0;
 let i: i32 = 0;                 // loop counter for initializing  our fake stack
 let psp: i32 = 0;               // pseudo stack pointer
@@ -60,7 +62,6 @@ loop source[ip] != '\0' {       // the main loop!!!
         } else {
             ip = ip + 1;
         }
-        
     } else if ch == ']' {
         depth = 1;
         loop depth != 0 {

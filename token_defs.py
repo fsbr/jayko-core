@@ -409,6 +409,20 @@ class MUL_TOKEN:
     def __repr__(self):
         return f"TokenType = {self.type}"
 
+class AND_TOKEN:
+    def __init__(self):
+        self.type = "AND_TOKEN"
+        self.lbp = 4
+        self.line_no = None
+    def led(self, left, jayko_instance):
+        # print(f"[led {self.type}] lbp={self.lbp}  cursor={jayko_instance.token_cursor}")
+        right = jayko_instance.expr(self.lbp)
+
+        node = AND_AST_NODE() 
+        node.lvalue = left
+        node.rvalue = right
+        return node
+
 class MOD_TOKEN:
     def __init__(self):
         self.type = "MOD_TOKEN"
