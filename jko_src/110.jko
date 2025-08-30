@@ -71,7 +71,7 @@ loop iter_counter < iters {
             new_tape[i] = 1;
             //say "c7]";
         } else if im1 == 0 and tape_i == 0 and ip1 == 0 {
-            new_tape[i] = 0;
+           new_tape[i] = 0;
             //say "c8]";
         }
 

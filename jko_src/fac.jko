@@ -5,7 +5,7 @@ let acc: i32 = 1;
 let i: i32 = 1;
 
 if (i == 0) { // help
-    say 4; // asdfadsfasdfasdf //
+    say 1; // asdfadsfasdfasdf //
 } else {
     loop i <= x {
         acc = acc * i;
@@ -14,6 +14,3 @@ if (i == 0) { // help
 
     say acc;
 }
-
-let u: u8 = 257;
-say u;

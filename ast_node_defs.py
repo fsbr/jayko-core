@@ -129,6 +129,7 @@ class NEQ_AST_NODE:
         self.type = "NEQ_AST_NODE"
         self.lvalue = None
         self.rvalue = None
+        self.value_type = None
     def code_gen(self, symbol_table):
         left_code = self.lvalue.code_gen(symbol_table)
         right_code = self.rvalue.code_gen(symbol_table)
@@ -141,6 +142,7 @@ class LT_AST_NODE:
         self.type = "LT_AST_NODE"
         self.lvalue = None
         self.rvalue = None
+        self.value_type = None
     def code_gen(self, symbol_table):
         left_code = self.lvalue.code_gen(symbol_table)
         right_code = self.rvalue.code_gen(symbol_table)
@@ -153,6 +155,7 @@ class GT_AST_NODE:
         self.type = "GT_AST_NODE"
         self.lvalue = None
         self.rvalue = None
+        self.value_type = None
     def code_gen(self, symbol_table):
         left_code = self.lvalue.code_gen(symbol_table)
         right_code = self.rvalue.code_gen(symbol_table)
@@ -165,6 +168,7 @@ class LEQ_AST_NODE:
         self.type = "LEQ_AST_NODE"
         self.lvalue = None
         self.rvalue = None
+        self.value_type = None
     def code_gen(self, symbol_table):
         left_code = self.lvalue.code_gen(symbol_table)
         right_code = self.rvalue.code_gen(symbol_table)
@@ -177,6 +181,7 @@ class GEQ_AST_NODE:
         self.type = "GEQ_AST_NODE"
         self.lvalue = None
         self.rvalue = None
+        self.value_type = None
     def code_gen(self, symbol_table):
         left_code = self.lvalue.code_gen(symbol_table)
         right_code = self.rvalue.code_gen(symbol_table)
@@ -251,6 +256,7 @@ class AND_AST_NODE:
         self.type = "AND_AST_NODE"
         self.lvalue = None
         self.rvalue = None
+        self.value_type = None
     def code_gen(self, symbol_table):
         left_code = self.lvalue.code_gen(symbol_table)
         right_code = self.rvalue.code_gen(symbol_table)
@@ -263,6 +269,7 @@ class MOD_AST_NODE:
         self.type = "MOD_AST_NODE"
         self.lvalue = None
         self.rvalue = None
+        self.value_type = None
     def code_gen(self, symbol_table):
         print("Generating code for MOD")
         left_code = self.lvalue.code_gen(symbol_table)
