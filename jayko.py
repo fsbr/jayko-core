@@ -118,6 +118,14 @@ class Jayko:
                     self.candidate_tokens.append(self.token_dispatch("!="))
                     continue
 
+            if ch == "-":
+                nx = self.peek_chars()
+                if nx == ">":
+                    self.advance_chars()                # consume "-"
+                    self.advance_chars()                # consume ">"
+                    self.candidate_tokens.append(self.token_dispatch("->"))
+                    continue
+
             if ch == "/":
                 nx = self.peek_chars()
                 if nx == "/":
@@ -176,6 +184,8 @@ class Jayko:
         # to the translation within the dictionary
         if candidate_token_str == "let":
             token_to_add = LET_TOKEN()
+        elif candidate_token_str == "return":
+            token_to_add = RETURN_TOKEN()
         elif candidate_token_str == "loop":
             token_to_add = LOOP_TOKEN()
         elif candidate_token_str == "u8":
@@ -186,6 +196,10 @@ class Jayko:
             token_to_add = STR_TOKEN()
         elif candidate_token_str == "char":
             token_to_add = CHAR_TOKEN()
+        elif candidate_token_str == "fn":
+            token_to_add = FUNCTION_TOKEN()
+        elif candidate_token_str == "->":
+            token_to_add = RARROW_TOKEN()
         elif candidate_token_str == ";":
             token_to_add = SEMICOLON_TOKEN()
         elif candidate_token_str == ":":
@@ -273,13 +287,14 @@ class Jayko:
             if current_token.type == "LET_TOKEN":
                 let_subtree = self.parse_let()
                 return let_subtree
-
+            elif current_token.type == "FUNCTION_TOKEN":
+                subtree = self.parse_function()
+                return subtree
             elif current_token.type == "IDENTIFIER_TOKEN":
                 subtree = self.expr()
                 self.expect("SEMICOLON_TOKEN")
                 print(f"[parse_statement, id_tok] subtree = {subtree}")
                 return subtree
-
             elif current_token.type == "SAY_TOKEN":
                 say_subtree = self.parse_say()
                 return say_subtree
@@ -293,22 +308,67 @@ class Jayko:
                 block_subtree = self.parse_block()
                 return block_subtree
                 printf(f"[parse], block_subtree = {block_subtree}")
+            elif current_token.type == "RETURN_TOKEN":
+                subtree = self.parse_return()
+                return subtree
             elif current_token.type == "EOF_TOKEN":
                 break
             else:
-                print(f"We do not know how to process the token {current_token}")
+                print(f"[parse_statement] we do not know how to process token {current_token}")
                 quit()
 
-    #def parse_index(self):
-    #    node = DA_INDEX_AST_NODE()
-    #    identifier = self.candidate_tokens[ self.token_cursor ]
-    #    node.target = identifier.value
-    #    node.target_type = self.symbol_table[node.target]
+    def parse_function(self):
+        self.expect("FUNCTION_TOKEN")
+        name_token = self.expect("IDENTIFIER_TOKEN")
+        self.expect("LPAREN_TOKEN")
+        print(f"[parse_function] tok = {self.candidate_tokens[ self.token_cursor ]}")
 
-    #    self.expect("LSQUARE_TOKEN")
-    #    node.index = self.expr()
-    #    self.expect("RSQUARE_TOKEN")
-    #    return node
+        params = []
+        if not self.match("RPAREN_TOKEN"):                      # can use the match pattern for array declarations too
+            while True:
+                param_name = self.expect("IDENTIFIER_TOKEN")
+                self.expect("COLON_TOKEN")
+                type_token = self.expect_multiple( ("I32_TOKEN", "U8_TOKEN", "STR_TOKEN", "CHAR_TOKEN") )
+                print(f"[parse_function] type_token = {type_token}")
+
+                # TODO: make it work also for arrays
+                params.append( (param_name.value, {"base": type_token.value, "isarray": False}) )
+                if self.match("COMMA_TOKEN"):
+                    self.advance_tokens()
+                else:
+                    break
+            print("[parse_function] before expecting RPAREN")
+            print(f"[parse_function] after expect('RPAREN_TOKEN') tok = {self.candidate_tokens[ self.token_cursor ]}")
+            self.expect("RPAREN_TOKEN") 
+
+        return_type = {"base": "void"}      # need a default type
+
+        if self.match("RARROW_TOKEN"):
+            # self.advance_tokens()           # should move to the type selection
+            print(f"[parse_function] before expect_multiple tok = {self.candidate_tokens[ self.token_cursor ]}")
+            type_token = self.expect_multiple( ("I32_TOKEN", "U8_TOKEN", "STR_TOKEN", "CHAR_TOKEN") )
+            return_type = {"base": type_token.value}
+
+        body = self.parse_block()
+
+        node = FUNCTION_DEF_AST_NODE()
+        node.name = FUNCTION_DEF_AST_NODE()
+        node.params = params
+        node.return_type = return_type
+        node.body = body
+
+        return node
+
+    def parse_return(self):
+        self.expect("RETURN_TOKEN")
+        value = self.expr()
+        self.expect("SEMICOLON_TOKEN")
+        node = RETURN_AST_NODE()
+        node.value = value
+        return node 
+
+
+        raise NotImplementedError("function calls not yet supported")
 
     def parse_block(self):
         print("[parse_block], entered")
@@ -565,7 +625,7 @@ class Jayko:
             print(f"[expect_multiple] t.type = {t.type}")
             if t.type == ctok:
                 return t
-        raise ValueError("The token type wasn't found in the token tuple")
+        raise ValueError(f"The token type ({t}) wasn't found in the token tuple")
          
 
     def match(self, token_type):
@@ -615,6 +675,7 @@ if __name__ == "__main__":
 
     ## Run GCC on the newly created output
     print("Compiling...")
+    subprocess.run(["clang-format", "output.c", ">" "output.c"])
     subprocess.run(["gcc", "-o", "output", "output.c"])
 
     print("\n\nPROGRAM OUTPUT: ")

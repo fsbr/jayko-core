@@ -32,9 +32,9 @@ To declare variables in jayko we use a rust-like syntax with the `let` keyword. 
 
 `let my_integer: i32 = 3141592;`
 
-`let ch: char = 'c';`
+`let ch: char = 'c'; // single quotes indicates a character`
 
-`let alot_of_chars: str = "Hello from Jayko!";`
+`let alot_of_chars: str = "Hello from Jayko!"; // double quotes indicates a string`
 
 ### Binary operators supported
 `+, -, *, ==, <, <=, >, >=, %`  Boolean operator `and` is supported.  `

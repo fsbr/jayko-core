@@ -206,6 +206,7 @@ class LSQUARE_TOKEN:
         raise SyntaxError("non-empty array literals not yet supported")
 
     def led(self, left, jayko_instance):
+        # this basically replaced parse_index()
         node = DA_INDEX_AST_NODE()
         node.target = left
         print(f"[lsquare_token] node.target={node.target}")
@@ -439,6 +440,38 @@ class MOD_TOKEN:
         return mod_node
     def __repr__(self):
         return f"TokenType = {self.type}"
+
+class COMMA_TOKEN:
+    def __init__(self):
+        self.type = "COMMA_TOKEN"
+        self.lbp = 2       # idk what goes here
+        self.line_no = None
+    def led(self, left, jayko_instance):
+        raise NotImplementedError("We haven't made this yet!")
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
+class FUNCTION_TOKEN:
+    def __init__(self):
+        self.type = "FUNCTION_TOKEN"
+        self.line_no = None
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
+class RARROW_TOKEN:
+    def __init__(self):
+        self.type = "RARROW_TOKEN"
+        self.line_no = None
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
+class RETURN_TOKEN:
+    def __init__(self):
+        self.type = "RETURN_TOKEN"
+        self.line_no = None
+    def __repr__(self):
+        return f"TokenType = {self.type}"
+
 
 class EOF_TOKEN:
     def __init__(self):

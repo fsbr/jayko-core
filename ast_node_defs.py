@@ -397,7 +397,7 @@ class DA_INDEX_ASSIGN_AST_NODE:
         self.target = None          # array
         self.index = None           # the index
         self.target_type = None     # the type of the array
-        self.value = None           # 
+        self.value = None           # what i will assign to the array
     
     def code_gen(self, symbol_table):
         arr = self.target.code_gen(symbol_table)
@@ -405,6 +405,33 @@ class DA_INDEX_ASSIGN_AST_NODE:
         val = self.value.code_gen(symbol_table)
         array_type = self.target_type["base"]
         return f"{arr}.items[idx] = {val};" 
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}"
+
+class FUNCTION_DEF_AST_NODE:
+    def __init__(self):
+        self.type = "FUNCTION_DEF_AST_NODE"
+        self.value_type = None
+        self.name = None            # identifier ast node
+        self.params = []            # list of (name, type) tuples
+        self.return_type = None     # {"base": "i32", "isarray": false}
+        self.body = None            # block AST Node
+    def code_gen(self, symbol_table):
+        # int main () {  } 
+        raise NotImplementedError("Haven't gotten here yet!")
+        
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}"
+
+class RETURN_AST_NODE():
+    def __init__(self):
+        self.type = "RETURN_AST_NODE"
+        self.value = None
+    def code_gen(self):
+        self.value.code_gen( symbol_table )
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}"
+
 
 
 #class METHOD_CALL_AST_NODE:
