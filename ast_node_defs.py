@@ -416,8 +416,13 @@ class FUNCTION_DEF_AST_NODE:
         self.params = []            # list of (name, type) tuples
         self.return_type = None     # {"base": "i32", "isarray": false}
         self.body = None            # block AST Node
+
     def code_gen(self, symbol_table):
-        # int main () {  } 
+        # int main () { return 0;  } 
+        value_type = self.value_type
+        name = self.name
+        body = self.body
+        return f" {value_type} {name} () {{ \n {body.code_gen(symbol_table)}\n }}"
         raise NotImplementedError("Haven't gotten here yet!")
         
     def __repr__(self):
@@ -427,8 +432,9 @@ class RETURN_AST_NODE():
     def __init__(self):
         self.type = "RETURN_AST_NODE"
         self.value = None
-    def code_gen(self):
-        self.value.code_gen( symbol_table )
+    def code_gen(self, symbol_table):
+        val = self.value.code_gen( symbol_table )
+        return f"return {val};" 
     def __repr__(self):
         return f"AST_NODE type = {self.type}"
 

@@ -1,17 +1,19 @@
 //let s: str = "hello world!";
 //say s;
+fn main() -> i32 {
+    let woo: str = "LETS GO CRAZY WITH IT!!!!";
+    say woo;
 
-let woo: str = "LETS GO CRAZY WITH IT!!!!";
-say woo;
+    let z: char = woo[3];
+    say z;
 
-let z: char = woo[3];
-say z;
+    let i: i32 = 0;
+    let terminator: char = '\0';
 
-let i: i32 = 0;
-let terminator: char = '\0';
+    loop woo[i] != terminator {
+        i = i + 1;
+    }
 
-loop woo[i] != terminator {
-    i = i + 1;
+    say i;
+    return 0;
 }
-
-say i;

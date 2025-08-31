@@ -1,2 +1,5 @@
-let x = (14 - 1) + 2*3;
-say x;
+fn main() -> i32 {
+    let x = (14 - 1) + 2*3;
+    say x;
+    return 0;
+}

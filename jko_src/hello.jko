@@ -1,6 +1,9 @@
-let form: u8 =256;
-say form;
+fn main() -> i32 {
+    let form: u8 =256;
+    say form;
 
-let at: i32 = 257;
-say at;
+    let at: i32 = 257;
+    say at;
 
+    return 0;
+}

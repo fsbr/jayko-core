@@ -1,81 +1,85 @@
 // BF INTERPRETER.  DEFINITELY A MILESTONE IN MY PROGRAMMING JOURNEY
 // this may be the least readable, most difficult to work in programming language
 // made by a human being.
-let cell_count: i32 = 20;
-let tape: u8[] = [];            // the spec calls for u8
-say "STARTING INSTRUCTION ANALYSIS ";
+fn main() -> i32 {
+    let cell_count: i32 = 20;
+    let tape: u8[] = [];            // the spec calls for u8
+    say "STARTING INSTRUCTION ANALYSIS ";
 
-// initialize the tape to 0
-let dp: i32 = 0;                 // data pointer: associated with the tape
-let ip: i32 = 0;                 // instruction pointer: associated with the source code
-                                 
-loop dp < cell_count {
-    tape.append(0);             // initialize tape to 0
-    dp=dp+1;                    // increment loop counter
-}
-dp = 0;                         // data pointer starts at 0 for program execution
+    // initialize the tape to 0
+    let dp: i32 = 0;                 // data pointer: associated with the tape
+    let ip: i32 = 0;                 // instruction pointer: associated with the source code
+                                     
+    loop dp < cell_count {
+        tape.append(0);             // initialize tape to 0
+        dp=dp+1;                    // increment loop counter
+    }
+    dp = 0;                         // data pointer starts at 0 for program execution
 
-// let source: str = "[++]";     // wow it actually counted by 2
-// let source: str = "+[>.+<]";
-let source: str = "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.";
-//let source: str = ">+++++[<+++++++>>>>++<<<-]<[>++>+++>+<<<-]>++.>.>--.>.";
-let source_count: i32 = 0;
-let ch: char = source[0];
-let out: char = 'x';            // if its still x something is wrong... we can't declare an empty
-                                // character yet.
-let n_out: u8 = 0;
-let i: i32 = 0;                 // loop counter for initializing  our fake stack
-let psp: i32 = 0;               // pseudo stack pointer
+    // let source: str = "[++]";     // wow it actually counted by 2
+    // let source: str = "+[>.+<]";
+    let source: str = "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.";
+    //let source: str = ">+++++[<+++++++>>>>++<<<-]<[>++>+++>+<<<-]>++.>.>--.>.";
+    let source_count: i32 = 0;
+    let ch: char = source[0];
+    let out: char = 'x';            // if its still x something is wrong... we can't declare an empty
+                                    // character yet.
+    let n_out: u8 = 0;
+    let i: i32 = 0;                 // loop counter for initializing  our fake stack
+    let psp: i32 = 0;               // pseudo stack pointer
 
-let depth: i32 = 0;             // tracking for simple bracket matching
+    let depth: i32 = 0;             // tracking for simple bracket matching
 
 
-loop source[ip] != '\0' {       // the main loop!!!
-    ch = source[ip];            // sucks that we have to declare then print the declaration!
+    loop source[ip] != '\0' {       // the main loop!!!
+        ch = source[ip];            // sucks that we have to declare then print the declaration!
 
-    if ch == '>' {
-        dp=dp+1;
-        ip = ip+1;
-    } else if ch == '<' {
-        dp=dp-1;
-        ip = ip+1;
-    } else if ch == '+' {
-        tape[dp] = tape[dp] + 1;
-        ip = ip+1;
-    } else if ch == '-' {
-        tape[dp] = tape[dp] - 1;
-        ip = ip+1;
-    } else if ch == '.' {
-        out = tape[dp];
-        say out; say " ";
-        ip = ip+1;
-    } else if ch == '[' {           // i have to sleep soon lmao but this is so funny
-        depth = 1;
-        if tape[dp] == 0 {
-            // jump past the last command
-            loop depth != 0 { 
+        if ch == '>' {
+            dp=dp+1;
+            ip = ip+1;
+        } else if ch == '<' {
+            dp=dp-1;
+            ip = ip+1;
+        } else if ch == '+' {
+            tape[dp] = tape[dp] + 1;
+            ip = ip+1;
+        } else if ch == '-' {
+            tape[dp] = tape[dp] - 1;
+            ip = ip+1;
+        } else if ch == '.' {
+            out = tape[dp];
+            say out; say " ";
+            ip = ip+1;
+        } else if ch == '[' {           // i have to sleep soon lmao but this is so funny
+            depth = 1;
+            if tape[dp] == 0 {
+                // jump past the last command
+                loop depth != 0 { 
+                    ip = ip + 1;
+                    if source[ip] == '[' { depth = depth + 1;} else
+                    if source[ip] == ']' { depth = depth - 1;}
+                }
                 ip = ip + 1;
-                if source[ip] == '[' { depth = depth + 1;} else
-                if source[ip] == ']' { depth = depth - 1;}
+            } else {
+                ip = ip + 1;
             }
-            ip = ip + 1;
-        } else {
-            ip = ip + 1;
-        }
-    } else if ch == ']' {
-        depth = 1;
-        loop depth != 0 {
-            ip = ip - 1;
-            if source[ip] == ']' { depth = depth + 1;} else
-            if source[ip] == '[' {depth = depth - 1;}
+        } else if ch == ']' {
+            depth = 1;
+            loop depth != 0 {
+                ip = ip - 1;
+                if source[ip] == ']' { depth = depth + 1;} else
+                if source[ip] == '[' {depth = depth - 1;}
+            }
         }
     }
-}
 
-dp = 0;
-loop dp < 20 {
-    n_out = tape[dp]; 
-    say n_out; say " "; 
-    dp = dp + 1;                 // its probably not too hard to impelment +=
+    dp = 0;
+    loop dp < 20 {
+        n_out = tape[dp]; 
+        say n_out; say " "; 
+        dp = dp + 1;                 // its probably not too hard to impelment +=
+    }
+
+    say "COMPLETE\n ";
+    return 0;
 }
-say "COMPLETE\n ";

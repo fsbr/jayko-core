@@ -1,11 +1,13 @@
-let x := 3;
-if x % 3 =  0 {
-    say "hello";
-} else if x = 4 {
-    say "goodbye";
-} else {
-    x := x + 1;
-    say "wow";
+fn main() -> i32 {
+    let x := 3;
+    if x % 3 =  0 {
+        say "hello";
+    } else if x = 4 {
+        say "goodbye";
+    } else {
+        x := x + 1;
+        say "wow";
+    }
+    say x;
+    return 0;
 }
-say x;
-

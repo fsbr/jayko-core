@@ -6,6 +6,10 @@ Parsing operates on the token stream that the tokenizer output.  The strategy I 
 Parsing produces data structure called an Abstract Syntax Tree. Performing post order traversal (evaluating the deepest nodes first) on this tree ensures that expressions are evaluated in the order we set them to be. The concept is illustrated well in [Bob Nystrom's Crafting Interpreters](https://craftinginterpreters.com/representing-code.html).  
 
 Finally, using the syntax tree, we emit (hopefully!) valid programs in C!
+
+### Dependencies
+`jayko` depends on `gcc`, `python3` (I use 3.8 but I'm sure other versions would work), and `clang-format`. 
+
 # WARNING:
 Anything could change in this repository at any time.  
 

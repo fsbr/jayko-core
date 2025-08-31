@@ -1,8 +1,11 @@
-let x: u8 = 4;
-let y: i32 = 3; 
+fn main () -> i32 {
+    let x: u8 = 4;
+    let y: i32 = 3; 
 
-if x > y {
-    say "x is GT to y";
-} 
+    if x > y {
+        say "x is GT to y";
+    } 
 
-say 2;
+    say 2;
+    return 0;
+}

@@ -139,7 +139,9 @@ class Jayko:
 
 
             # 4) Single-char punctuators/operators
-            if ch in ("*", "+", "-", ":", ";", "%", "{", "}", "=", "<", ">", "(",")", "[", "]", "."):
+            # I think we hold these elsewhere too because now each time we want to use this huge list
+            # if there are more times, we have to copy over, which doesn't seem good.
+            if ch in ("*", "+", "-", ":", ";", "%", "{", "}", "=", "<", ">", "(",")", "[", "]", ".", ","):
                 self.candidate_tokens.append(self.token_dispatch(ch))
                 self.advance_chars()
                 continue
@@ -182,6 +184,8 @@ class Jayko:
         # this function should look at the candidate_token_str and form the token object
         # should probably re implement this dispatch using a dict that just matches the token
         # to the translation within the dictionary
+        # eventually we want this to be a hashmap, because each token we add is making it harder to 
+        # find the last tokens in the dispatch.
         if candidate_token_str == "let":
             token_to_add = LET_TOKEN()
         elif candidate_token_str == "return":
@@ -200,6 +204,8 @@ class Jayko:
             token_to_add = FUNCTION_TOKEN()
         elif candidate_token_str == "->":
             token_to_add = RARROW_TOKEN()
+        elif candidate_token_str == ",":
+            token_to_add = COMMA_TOKEN()
         elif candidate_token_str == ";":
             token_to_add = SEMICOLON_TOKEN()
         elif candidate_token_str == ":":
@@ -264,7 +270,7 @@ class Jayko:
             print(f"candidate token str {candidate_token_str} not found")
             print("Exiting...")
             quit()
-        print(f"[token dispatch] about to return {token_to_add}")
+        # print(f"[token dispatch] about to return {token_to_add}")
 
         # add the line number so we dont have completely zero error output
         if token_to_add:
@@ -352,9 +358,11 @@ class Jayko:
         body = self.parse_block()
 
         node = FUNCTION_DEF_AST_NODE()
-        node.name = FUNCTION_DEF_AST_NODE()
+        node.name = name_token.value
         node.params = params
         node.return_type = return_type
+        node.value_type = TYPE_INFO[type_token.value]["c_type"]
+        print(f"[parse_function] node.value_type = {node.value_type}")
         node.body = body
 
         return node
@@ -550,10 +558,10 @@ class Jayko:
         f.write("DA_TYPEDEF(uint8_t, Array_u8);\n")             # eventually we want our program to know about the types that have a dynamic array and 
         f.write("DA_TYPEDEF(int, Array_i32);\n")                # only deefine them once at the top of the program.
         f.write("\n")
-        f.write("int main() {\n")   
+        # f.write("int main() {\n")   
         f.write(self.big_string)
-        f.write("\treturn 0;\n")
-        f.write("}\n")
+        # f.write("\treturn 0;\n")
+        # f.write("}\n")
         f.close()
 
     def traversal(self, node):
@@ -653,10 +661,11 @@ if __name__ == "__main__":
 
     # Delete the old output file
     subprocess.run(["rm", "output.c"])
+    subprocess.run(["rm", "pretty_output.c"])
     subprocess.run(["rm", "output"])
 
     source_file = sys.argv[1] 
-    print("source_file", sys.argv[1])
+    # print("[jayko_main] source_file", sys.argv[1])
 
     j = Jayko()
     j.read_source(source_file)
@@ -674,8 +683,9 @@ if __name__ == "__main__":
 
 
     ## Run GCC on the newly created output
+    # quit("[jayko_main] pre compilation")
     print("Compiling...")
-    subprocess.run(["clang-format", "output.c", ">" "output.c"])
+    subprocess.run(["clang-format", "output.c", ">", "output.c"])       # we are putting a lot of trust into clang-format
     subprocess.run(["gcc", "-o", "output", "output.c"])
 
     print("\n\nPROGRAM OUTPUT: ")

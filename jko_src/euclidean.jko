@@ -1,9 +1,12 @@
-let b: i32 = 720;
-let a: i32 = 120;
+fn main() -> i32 {
+    let b: i32 = 720;
+    let a: i32 = 120;
 
-if a > b {
-    a = a - b;
-} else {
-    b = b - a;
+    if a > b {
+        a = a - b;
+    } else {
+        b = b - a;
+    }
+    say a;
+    return 0;
 }
-say a;

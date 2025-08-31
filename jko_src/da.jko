@@ -1,12 +1,15 @@
-let x: i32[] = []
+fn main -> i32 {
+    let x: i32[] = []
 
 
-x.append(5);
-let i: i32 = 0;
-loop i < 1 {
-    let x_i: i32 = x[i];
-    say x_i;
-    i=i+1;
+    x.append(5);
+    let i: i32 = 0;
+    loop i < 1 {
+        let x_i: i32 = x[i];
+        say x_i;
+        i=i+1;
+    }
+    return 0;
 }
 //x[0] = -2;
 //let z: u8 = x[0];
