@@ -8,12 +8,31 @@ fn fun(x:i32, y:i32) -> i32 {
     let b: i32 = 420;
     return (x-a) * (y+b);
 }
+
+fn fac(n: i32) ->i32 {
+    if n <= 1 {
+        return 1;
+    }
+    // let c: i32 = n-1;           // certain things in the lang don't have correct expression parsing
+    return n*fac(n-1);
+}
+
+fn huge(n: i32) -> i32 {
+    if n<= 1 {
+        return 1;
+    }
+    return n+huge(n-1);
+}
 fn main() -> i32 {
     // i just keep thinking about how much we are leaning on C's runtime here.
-    let a: i32 = add(2,5);
+    let a: i32 = add(2,5) + 2;
     let b: i32 = fun(2,5);
+    let c: i32 = fac(10);
+    let d: i32 = huge(100);
     say a; say "\n";
     say b; say "\n";
+    say c; say "\n";
+    say d; say "\n";
     //let b: i32 = 0;
     //b = add(2,5);
     return 0;

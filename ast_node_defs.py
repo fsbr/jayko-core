@@ -458,11 +458,8 @@ class FUNCTION_CALL_AST_NODE:
 
         buf = []
         for arg in self.args:
-            buf.append(str(arg.value))
-
+            buf.append( arg.code_gen(symbol_table) )
         full_args = ", ".join(buf)
-
-
         return f"{self.name}( {full_args} )"
     def __repr__(self):
         return f"AST_NODE type = {self.type}"
