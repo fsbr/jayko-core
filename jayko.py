@@ -331,20 +331,33 @@ class Jayko:
 
         params = []
         if not self.match("RPAREN_TOKEN"):                      # can use the match pattern for array declarations too
+            count = 0
+            for i, t in enumerate(self.candidate_tokens):
+                print(f"[parse_function, parameter loop] token {i}: {t}")
             while True:
+                #print(f"[parse_function] inside parameter matching sequence count = {count}")
+                print(f"[parse_function] tok = {self.candidate_tokens[ self.token_cursor ]}")
+
+                print(f"expecting IDENTIFIER at cursor {self.token_cursor}: { self.candidate_tokens[self.token_cursor]}")
                 param_name = self.expect("IDENTIFIER_TOKEN")
+                print(f"expecting COLON_TOKEN at cursor {self.token_cursor}: { self.candidate_tokens[self.token_cursor]}")
                 self.expect("COLON_TOKEN")
+                print(f"expecting I32 at cursor {self.token_cursor}: { self.candidate_tokens[self.token_cursor]}")
                 type_token = self.expect_multiple( ("I32_TOKEN", "U8_TOKEN", "STR_TOKEN", "CHAR_TOKEN") )
+
                 print(f"[parse_function] type_token = {type_token}")
+                print("[parse_function] where i think its failing -- it fails on second pass")
 
                 # TODO: make it work also for arrays
                 params.append( (param_name.value, {"base": type_token.value, "isarray": False}) )
-                if self.match("COMMA_TOKEN"):
-                    self.advance_tokens()
-                else:
-                    break
-            print("[parse_function] before expecting RPAREN")
-            print(f"[parse_function] after expect('RPAREN_TOKEN') tok = {self.candidate_tokens[ self.token_cursor ]}")
+
+                if not self.match("COMMA_TOKEN"): break     # THE KEY!!!
+
+                count += 1
+
+            # print("[parse_function] before expecting RPAREN")
+            # print(f"[parse_function] after expect('RPAREN_TOKEN') tok = {self.candidate_tokens[ self.token_cursor ]}")
+
             self.expect("RPAREN_TOKEN") 
 
         return_type = {"base": "void"}      # need a default type
@@ -360,6 +373,7 @@ class Jayko:
         node = FUNCTION_DEF_AST_NODE()
         node.name = name_token.value
         node.params = params
+        print(f"[parse_function] node.params: {node.params}")
         node.return_type = return_type
         node.value_type = TYPE_INFO[type_token.value]["c_type"]
         print(f"[parse_function] node.value_type = {node.value_type}")
@@ -619,7 +633,7 @@ class Jayko:
             print(f"[expect] prev_token_index = {prev_token_index}")
             if prev_token_index >= 0:
                 prev_token = self.candidate_tokens[ self.token_cursor - 2]  # since theres a call to advnace_tokens(), the "previous token" in terms of parsing errors, was 2 tokens ago
-                print(f"prev_token = {prev_token}")
+                print(f"[expect] prev_token = {prev_token}")
                 raise SyntaxError(f"Expected {token_type} got {t.type} on L:{prev_token.line_no} - {t.line_no}")
             else:
                 raise SyntaxError(f"Expected {token_type} got {t.type} around L:{t.line_no}")

@@ -414,7 +414,7 @@ class FUNCTION_DEF_AST_NODE:
         self.value_type = None
         self.name = None            # identifier ast node
         self.params = []            # list of (name, type) tuples
-        self.return_type = None     # {"base": "i32", "isarray": false}
+        self.return_type = None     # {"base": "i32", "isarray": false}, do we work with arrays
         self.body = None            # block AST Node
 
     def code_gen(self, symbol_table):
@@ -422,8 +422,28 @@ class FUNCTION_DEF_AST_NODE:
         value_type = self.value_type
         name = self.name
         body = self.body
-        return f" {value_type} {name} () {{ \n {body.code_gen(symbol_table)}\n }}"
-        raise NotImplementedError("Haven't gotten here yet!")
+        params = self.params
+
+        buf = []
+        for idx, parameter in enumerate(params):
+            # int parameter[0]  
+            # to get int TYPE
+            print(f"[fdan] par[0] = {parameter[0]}, par[1] = {parameter[1]}")
+            param_base_type = parameter[1]["base"]
+            c_type = TYPE_INFO[param_base_type]["c_type"]    # it is already a string
+            param_name = str(parameter[0])
+            param_string = f"{c_type} {param_name}"
+
+            buf.append(param_string)
+
+        full_params = ", ".join(buf)
+        print(f"buf = {buf}")
+        print(f"full_params = {full_params}")
+
+        
+        
+        print(f"[function_def_ast_node - code_gen], f{self.params}")
+        return f" {value_type} {name} ({full_params}) {{ \n {body.code_gen(symbol_table)} }}\n\n"
         
     def __repr__(self):
         return f"AST_NODE type = {self.type}"
@@ -434,7 +454,7 @@ class RETURN_AST_NODE():
         self.value = None
     def code_gen(self, symbol_table):
         val = self.value.code_gen( symbol_table )
-        return f"return {val};" 
+        return f"return {val};\n" 
     def __repr__(self):
         return f"AST_NODE type = {self.type}"
 
