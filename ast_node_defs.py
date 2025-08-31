@@ -448,6 +448,16 @@ class FUNCTION_DEF_AST_NODE:
     def __repr__(self):
         return f"AST_NODE type = {self.type}"
 
+class FUNCTION_CALL_AST_NODE:
+    def __init__(self):
+        self.type = "FUNCTION_CALL_AST_NODE"
+        self.value = None
+    def code_gen(self, symbol_table):
+        raise NotImplementedError("Function Calling isn't defined yet")
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}"
+
+
 class RETURN_AST_NODE():
     def __init__(self):
         self.type = "RETURN_AST_NODE"

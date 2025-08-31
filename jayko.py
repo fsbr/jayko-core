@@ -454,20 +454,21 @@ class Jayko:
         return let_node_to_add
 
     def parse_type(self):
-            self.expect_multiple( ("I32_TOKEN", "U8_TOKEN", "STR_TOKEN", "CHAR_TOKEN") )
 
-            base_type = self.expected_token().value
-            print(f"[parse_type] base type = {base_type}")
+        self.expect_multiple( ("I32_TOKEN", "U8_TOKEN", "STR_TOKEN", "CHAR_TOKEN") )
 
-            is_array = False
-            if self.match("LSQUARE_TOKEN"):
-                self.expect("RSQUARE_TOKEN")
-                is_array = True
+        base_type = self.expected_token().value
+        print(f"[parse_type] base type = {base_type}")
 
-            return {
-                "base": base_type,
-                "is_array": is_array
-            }
+        is_array = False
+        if self.match("LSQUARE_TOKEN"):
+            self.expect("RSQUARE_TOKEN")
+            is_array = True
+
+        return {
+            "base": base_type,
+            "is_array": is_array
+        }
     
     def parse_assignment(self):
         # an ASSIGNMENT statement is 
