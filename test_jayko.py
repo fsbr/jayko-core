@@ -87,3 +87,24 @@ def test_compile_110():
     assert result.returncode == 0
     assert c_result.stdout[-10:-1] == "111100010"   # eventually we want to test the full output
 
+def test_compile_functions():
+    result = subprocess.run (
+        ["python3", "jayko.py", "jko_src/functions.jko"],
+        capture_output=True,
+        text=True
+    )
+    c_result = subprocess.run (
+        ["./output"],
+        capture_output=True,
+        text=True
+    )
+    #print(result.stdout)
+    print(repr(c_result.stdout))
+    #print(c_result.stderr)
+    assert result.returncode == 0
+    assert c_result.stdout == "7\n-28475\n"   # eventually we want to test the full output
+
+
+
+
+

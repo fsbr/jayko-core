@@ -381,6 +381,28 @@ class Jayko:
 
         return node
 
+    def parse_function_call(self, name):
+        node = FUNCTION_CALL_AST_NODE()
+        node.name = name                            # this shouldnt work since i hadn't defined name, Haskell would NEVER.
+                                                    # its a good reason not to use python tbh.
+
+        self.expect("LPAREN_TOKEN")
+
+        if self.peek_tokens().type != "RPAREN_TOKEN":
+            while True:
+                # we have arguments to parse
+                individual_argument = self.expr()
+                node.args.append(individual_argument)           # comma might not play with this at first
+                if self.peek_tokens().type == "COMMA_TOKEN":
+                    self.advance_tokens()                       # consume the ,
+                else:
+                    break
+
+        self.expect("RPAREN_TOKEN")
+        return node
+
+
+
     def parse_return(self):
         self.expect("RETURN_TOKEN")
         value = self.expr()
@@ -530,7 +552,7 @@ class Jayko:
         print(f"[expr] rbp={rbp}  peek={self.peek_tokens().type}  peek.lbp={getattr(self.peek_tokens(), 'lbp', None)}  cursor={self.token_cursor}")
         t = self.advance_tokens()
 
-        if t.type in ("LPAREN_TOKEN", "LSQUARE_TOKEN", "SUB_TOKEN"):
+        if t.type in ("LPAREN_TOKEN", "LSQUARE_TOKEN", "SUB_TOKEN", "IDENTIFIER_TOKEN"):
             left = t.nud(self)
         else:
             left = t.nud()

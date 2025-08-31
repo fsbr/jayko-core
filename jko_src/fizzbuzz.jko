@@ -1,0 +1,19 @@
+fn main() -> i32 {
+    let i: i32 = 1;
+
+    loop i<=30 {
+
+        if i%15==0 {
+            say i;
+            say "FizzBuzz";
+        } else if i%3==0 {
+            say i;
+            say "Fizz";
+        } else if i%5==0 {
+            say i;
+            say "Buzz";
+        }
+        i = i+1;
+    }
+    return 0;
+}

@@ -1,0 +1,6 @@
+// trying minus numbers
+fn main() -> i32 {
+    let x: i32 = (3 + -3) + 5 + -3;
+    say x;
+    return 0;
+}

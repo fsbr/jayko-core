@@ -1,0 +1,37 @@
+// two sum in jko
+// brute force solution
+
+//let target: i32 = 9;
+fn main() -> i32 {
+    let target: i32 = 6;
+    let nums: i32[] = []; // we need [2,7,11,15]
+
+    //nums.append(2);
+    //nums.append(7);
+    //nums.append(11);
+    //nums.append(15);
+    nums.append(3);
+    nums.append(2);
+    nums.append(4);
+    let len_nums: i32 = 3; // idk if i can compute the length of an integer array yet lmao
+
+    let curr_num: i32 = 0;
+    let next_num: i32 = 0;
+
+    let i: i32 = 0;
+    loop i<len_nums {
+        curr_num = nums[i];
+        let j: i32 = i+1;
+        loop j<len_nums{
+            next_num = nums[j];
+            if next_num + curr_num == target {
+                say i; say " "; say j; say " are the indices \n";
+                j = 4; i = 4; // dumb hack to get out of loop before we have return
+            }
+            j=j+1;
+        }
+        i = i+1;
+    }
+
+    return 0;
+}

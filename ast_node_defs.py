@@ -451,9 +451,19 @@ class FUNCTION_DEF_AST_NODE:
 class FUNCTION_CALL_AST_NODE:
     def __init__(self):
         self.type = "FUNCTION_CALL_AST_NODE"
-        self.value = None
+        self.name = None
+        self.args = []
     def code_gen(self, symbol_table):
-        raise NotImplementedError("Function Calling isn't defined yet")
+        # my_function(arg1, arg2, ...)
+
+        buf = []
+        for arg in self.args:
+            buf.append(str(arg.value))
+
+        full_args = ", ".join(buf)
+
+
+        return f"{self.name}( {full_args} )"
     def __repr__(self):
         return f"AST_NODE type = {self.type}"
 

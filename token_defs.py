@@ -15,10 +15,18 @@ class IDENTIFIER_TOKEN:
         self.value = None
         self.lbp = 0
         self.line_no = None
-    def nud(self):
-        node = IDENTIFIER_AST_NODE()
-        node.value = self.value
-        return node
+    def nud(self,jayko_instance):
+        # i mean i guess if we call another parsing function its semi similar to calling expr
+        # intuitively i feel that it's different but I can't tell why.
+        name = self.value       # quick alias for clarity
+        if jayko_instance.candidate_tokens[ jayko_instance.token_cursor ].type == "LPAREN_TOKEN":
+            print("[identifier token] if block")
+            return jayko_instance.parse_function_call( name )
+        else:
+            print("[identifier token] else block")
+            node = IDENTIFIER_AST_NODE()
+            node.value = self.value
+            return node
     def __repr__(self):
         return f"TokenType = {self.type}, value = {self.value}"
 
@@ -444,7 +452,7 @@ class MOD_TOKEN:
 class COMMA_TOKEN:
     def __init__(self):
         self.type = "COMMA_TOKEN"
-        self.lbp = 2       # idk what goes here
+        self.lbp = 0       # idk what goes here
         self.line_no = None
     def led(self, left, jayko_instance):
         raise NotImplementedError("We haven't made this yet!")
