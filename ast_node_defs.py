@@ -384,6 +384,7 @@ class DA_INDEX_AST_NODE:
             if symbol_table[target_value]["base"] == "str":
                 print("GENERATE NEW CODE HERE")
 
+                # return f"{arr}[{idx}]"                # this works lmao
                 return f"{arr}[{idx}]"
 
         return f"{arr}.items[{idx}]"
@@ -455,7 +456,6 @@ class FUNCTION_CALL_AST_NODE:
         self.args = []
     def code_gen(self, symbol_table):
         # my_function(arg1, arg2, ...)
-
         buf = []
         for arg in self.args:
             buf.append( arg.code_gen(symbol_table) )

@@ -17,15 +17,15 @@ Anything could change in this repository at any time.
 Over time, I want `jayko` to become useful to me as a tool for serious software development. To achieve this there are many things that still need to be done.  
 - Implement dynamic array for generic data types
 - Runtime checks for dynamic array
-- Functions
+- Functions  **(31-AUG-2025)**
 - Read from `stdin`
 - HashMap implementation for generic data types.
 - Contextualize code generation so that mulitple definitions of custom data types aren't added to the output C file.
-- Our own Virtual
+- Our own Virtual Machine to run the code from (although compiling to C is a time honoured tradition).  
 
 In addition there are several types of programs I want to write to show the langauge can solve real problems. 
--  BrainFuck interpreter
--  Rule 110
+-  BrainFuck interpreter -- Completed on 28-Aug-2025
+-  Rule 110 -- Completed on 28-Aug-2025
 -  JSON Parser
 
 
@@ -63,6 +63,15 @@ loop i < 3 {
     i = i + 1;
 }
 ```
+
+### Declaring Functions
+`jayko` functions are declared as follows
+```
+fn my_function(x: i32, y:i32) {
+    return x+y;
+}
+```
+Right now functions are only passed by value, which has a lot of limitations.  Support for pointer/array types is incoming.
 
 ## Further  Reading
 

@@ -29,6 +29,7 @@ fn main() -> i32 {
     let b: i32 = fun(2,5);
     let c: i32 = fac(10);
     let d: i32 = huge(100);
+    let e: str = "hello big friends";
     say a; say "\n";
     say b; say "\n";
     say c; say "\n";

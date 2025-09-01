@@ -102,7 +102,7 @@ def test_compile_functions():
     print(repr(c_result.stdout))
     #print(c_result.stderr)
     assert result.returncode == 0
-    assert c_result.stdout == "7\n-28475\n"   # eventually we want to test the full output
+    assert c_result.stdout == '9\n-28475\n3628800\n5050\n'
 
 
 

@@ -411,9 +411,6 @@ class Jayko:
         node.value = value
         return node 
 
-
-        raise NotImplementedError("function calls not yet supported")
-
     def parse_block(self):
         print("[parse_block], entered")
         self.expect("LBRACE_TOKEN")

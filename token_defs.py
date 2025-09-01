@@ -217,6 +217,7 @@ class LSQUARE_TOKEN:
         # this basically replaced parse_index()
         node = DA_INDEX_AST_NODE()
         node.target = left
+        node.line_no = self.line_no
         print(f"[lsquare_token] node.target={node.target}")
         node.index = jayko_instance.expr()
         jayko_instance.expect("RSQUARE_TOKEN")

@@ -33,11 +33,13 @@
         xs->count = 0; \
         xs->capacity = 0; \
     }\
-    static inline T Name##_get(Name *xs, size_t index) { \
-        if (index >= xs->count) { \
-            fprintf(stderr, "Index %zu out of bounds (size: %zu)\n", index, xs->count);\
+    static inline T Name##_get(Name *xs, int index, size_t line_number) { \
+        if (index >= xs->count || index < 0) { \
+            fprintf(stdout, "[jayko_runtime]: Line %zu Index %d out of bounds (size: %zu)\n", line_number, index, xs->count);\
             exit(1);\
         } \
         return xs->items[index];\
     }
 #endif
+
+// %zu for size_t
