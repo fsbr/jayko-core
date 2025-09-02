@@ -31,6 +31,16 @@ TYPE_INFO = {
 }
 
 ###############################################################################
+# BUILTIN FUNCTIONS TABLE 
+# Right now this just contains the built in function names, and the 
+# code string we need to generate. 
+# BUILTIN_FUNCTIONS = { "function_name" : "code_to_generate"
+###############################################################################
+BUILTIN_FUNCTIONS = {
+        "read_file": "None"
+}
+
+###############################################################################
 #  AST NODES DEFINITONS
 ###############################################################################
 class LET_AST_NODE:

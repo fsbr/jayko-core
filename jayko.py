@@ -589,6 +589,7 @@ class Jayko:
         f.write("#include <stdio.h>\n")
         f.write("#include <stdint.h>\n")
         f.write("#include \"c_src/jayko_array.h\"\n")
+        f.write("#include \"c_src/jayko_input.h\"\n")
         f.write("DA_TYPEDEF(uint8_t, Array_u8);\n")             # eventually we want our program to know about the types that have a dynamic array and 
         f.write("DA_TYPEDEF(int, Array_i32);\n")                # only deefine them once at the top of the program.
         f.write("\n")

@@ -1,0 +1,9 @@
+fn main() -> i32 {
+
+    let file_name: str = "c_src/jayko_array.h";
+
+    let contents: str = read_file(file_name);
+    say contents;
+    say "We will read from a file here\n";
+    return 0;
+}
