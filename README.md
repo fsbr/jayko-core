@@ -63,6 +63,19 @@ loop i < 3 {
     i = i + 1;
 }
 ```
+`jayko` supports if then else as follows
+
+```
+if x>5 and x< 10 {
+    say "hello\n";
+} else if x>=10 {
+    say "bigger than 10\n";
+} else {
+    say "less than five\n";
+}
+```
+
+
 
 ### Declaring Functions
 `jayko` functions are declared as follows
