@@ -3,7 +3,16 @@ fn main() -> i32 {
     let file_name: str = "c_src/jayko_array.h";
 
     let contents: str = read_file(file_name);
-    say contents;
-    say "We will read from a file here\n";
+    let c1: char = contents[1]; 
+    //say c1;
+    //say "We will read from a file here\n";
+    
+    let i: i32 = 0;
+
+    loop contents[i] != '\0' {
+        let c2: char = contents[i];
+        say c2;
+        i = i+1;
+    }
     return 0;
 }

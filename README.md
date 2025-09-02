@@ -18,7 +18,7 @@ Over time, I want `jayko` to become useful to me as a tool for serious software 
 - Implement dynamic array for generic data types
 - Runtime checks for dynamic array
 - Functions  **(31-AUG-2025)**
-- Read from `stdin`
+- Read files from `stdin` **(1-SEP-2025)**.
 - HashMap implementation for generic data types.
 - Contextualize code generation so that mulitple definitions of custom data types aren't added to the output C file.
 - Our own Virtual Machine to run the code from (although compiling to C is a time honoured tradition).  
