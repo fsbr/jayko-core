@@ -365,7 +365,7 @@ class DA_APPEND_AST_NODE:
         self.type = "DA_APPEND_AST_NODE"
         self.target = None      # array
         self.value = None       # the value we want to append
-        self.target_type = None
+        self.target_type = None # the type of elements in the array
     def code_gen(self, symbol_table):
         arr = self.target.code_gen(symbol_table)
         val = self.value.code_gen(symbol_table)
@@ -374,11 +374,22 @@ class DA_APPEND_AST_NODE:
     def __repr__(self):
         return f"AST_NODE type = {self.type}"
 
+class DA_LENGTH_AST_NODE:
+    def __init__(self):
+        self.type = "DA_LENGTH_AST_NODE"
+        self.target = None                  # Array
+        self.value = None                   # do we even need this field?
+        self.target_type = None             # type of the elements of the array
+    def code_gen(self, symbol_table):
+        arr = self.target.code_gen(symbol_table)
+        array_type = self.target_type["base"]
+        return f"Array_{array_type}_length(&{arr});"
+
 class DA_INDEX_AST_NODE:
     def __init__(self):
         self.type = "DA_INDEX_AST_NODE"
         self.target = None                          # array
-        self.target_type = None                     # type of the target
+        self.target_type = None                     # type of the target (elements in the array).
         self.index = None                           # index we want to index into
     def code_gen(self, symbol_table):
         # Point p4 = PointArray_get(&xs, 0);

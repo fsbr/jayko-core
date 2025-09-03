@@ -39,7 +39,11 @@
             exit(1);\
         } \
         return xs->items[index];\
-    }
+    }\
+    static inline int Name##_length(Name *xs) { \
+        return xs->count;\
+    }\
+
 #endif
 
 // %zu for size_t

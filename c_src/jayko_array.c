@@ -37,17 +37,25 @@ int main(void) {
     Point p4 = PointArray_get(&xs, 0, 0);
     printf(" hey again: x=%d, y=%d \n", p4.x, p4.y); 
 
+    // So we correctly have the runtime errors in the C side, but haven't figured out how
+    // to put them into the jko side yet.
     // Point p5 = PointArray_get(&xs, 4);       // these correctly give runtime errors!
     // Point p5 = PointArray_get(&xs, -1);
 
 
-    PointArray xs2 = arbfun(&xs);
+    PointArray xs2 = change_element(&xs);
     for (size_t i = 0; i < xs.count; ++i) {
         printf(" xs2: x=%d, y=%d \n", xs2.items[i].x, xs2.items[i].y); 
         
     }
+
+    int len_xs2 = PointArray_length(&xs2); 
+    printf("The length of xs2 = %d\n", len_xs2);
     // free the memory
     PointArray_free(&xs);
+    // since change_element only returns a pointer we basically have to know on our own to only free 
+    // one of these PointArrays
+    // PointArray_free(&xs2);          // freeing and allocating dynamically is an interesting problem.
     return 0;
 }
 

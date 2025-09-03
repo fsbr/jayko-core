@@ -11,7 +11,7 @@ Finally, using the syntax tree, we emit (hopefully!) valid programs in C!
 `jayko` depends on `gcc`, `python3` (I use 3.8 but I'm sure other versions would work), and `clang-format`. 
 
 # WARNING:
-Anything could change in this repository at any time.  
+Anything could change in this repository at any time.
 
 ## Goals of the Project: 
 Over time, I want `jayko` to become useful to me as a tool for serious software development. To achieve this there are many things that still need to be done.  
@@ -85,6 +85,13 @@ fn my_function(x: i32, y:i32) {
 }
 ```
 Right now functions are only passed by value, which has a lot of limitations.  Support for pointer/array types is incoming.
+
+### Reading files:
+The built in `read_file(<path/to/filename>)` reads text into a string.  Example usage:
+```
+let source_code: str = read_file("source_code.c");
+```
+
 
 ## Further  Reading
 

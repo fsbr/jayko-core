@@ -95,22 +95,33 @@ class DOT_TOKEN:
         self.line_no = None
     def led(self, left, jayko_instance):
         method_token = jayko_instance.expect("IDENTIFIER_TOKEN")
-        print("[dot_token.led() method_token = {method_token}")
-        method_token = method_token.value
+        print(f"[dot_token.led() method_token = {method_token}")
+        method_name = method_token.value
+        print(f"[dot_token.led(), after reassigning.] method_token = {method_token}")
 
-        jayko_instance.expect("LPAREN_TOKEN")
-        arg_expr = jayko_instance.expr()
-        print(f"[dot_token.led() arg_expr = {arg_expr}")
-        jayko_instance.expect("RPAREN_TOKEN")
 
-        node = DA_APPEND_AST_NODE()
-        node.target = left              # kind of awkward becuase we eventually need to add error checking for like (1+2).append()
-        node.value = arg_expr
-        node.target_type = jayko_instance.symbol_table[node.target.value]   # i can't really tell if this only works for one case or what the edge cases even are for it.
-        print(f"[dot token led] node.target = {node.target}")
-        print(f"[dot token led] node.value = {node.value}")
-        print(f"[dot token led] node.target_type = {node.target_type}")
-        return node
+
+        if method_name == "append":
+            jayko_instance.expect("LPAREN_TOKEN")
+            arg_expr = jayko_instance.expr()
+            print(f"[dot_token.led() arg_expr = {arg_expr}")
+            jayko_instance.expect("RPAREN_TOKEN")
+            node = DA_APPEND_AST_NODE()
+            node.target = left              # kind of awkward becuase we eventually need to add error checking for like (1+2).append()
+            node.value = arg_expr
+            node.target_type = jayko_instance.symbol_table[node.target.value]   # i can't really tell if this only works for one case or what the edge cases even are for it.
+            print(f"[dot token led] node.target = {node.target}")
+            print(f"[dot token led] node.value = {node.value}")
+            print(f"[dot token led] node.target_type = {node.target_type}")
+            return node
+        elif method_name == "length":
+            jayko_instance.expect("LPAREN_TOKEN")
+            jayko_instance.expect("RPAREN_TOKEN")
+                
+            node = DA_LENGTH_AST_NODE()
+            node.target = left              # kind of awkward becuase we eventually need to add error checking for like (1+2).append()
+            node.target_type = jayko_instance.symbol_table[node.target.value]   # i can't really tell if this only works for one case or what the edge cases even are for it.
+            return node
     def __repr__(self):
         return f"TokenType = {self.type}"
 
