@@ -236,6 +236,8 @@ class Jayko:
             token_to_add = EQUALITY_TOKEN()
         elif candidate_token_str == "and":
             token_to_add = AND_TOKEN()
+        elif candidate_token_str == "or":
+            token_to_add = OR_TOKEN()
         elif candidate_token_str == "<":
             token_to_add = LT_TOKEN()
         elif candidate_token_str == "<=":

@@ -444,6 +444,20 @@ class AND_TOKEN:
         node.rvalue = right
         return node
 
+class OR_TOKEN:
+    def __init__(self):
+        self.type = "OR_TOKEN"
+        self.lbp = 4
+        self.line_no = None
+    def led(self, left, jayko_instance):
+        # print(f"[led {self.type}] lbp={self.lbp}  cursor={jayko_instance.token_cursor}")
+        right = jayko_instance.expr(self.lbp)
+
+        node = OR_AST_NODE() 
+        node.lvalue = left
+        node.rvalue = right
+        return node
+
 class MOD_TOKEN:
     def __init__(self):
         self.type = "MOD_TOKEN"

@@ -274,6 +274,19 @@ class AND_AST_NODE:
     def __repr__(self):
         return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
 
+class OR_AST_NODE:
+    def __init__(self):
+        self.type = "OR_AST_NODE"
+        self.lvalue = None
+        self.rvalue = None
+        self.value_type = None
+    def code_gen(self, symbol_table):
+        left_code = self.lvalue.code_gen(symbol_table)
+        right_code = self.rvalue.code_gen(symbol_table)
+        return f"({left_code} || {right_code})"
+    def __repr__(self):
+        return f"AST_NODE type = {self.type}, lvalue = {self.lvalue}, rvalue = {self.rvalue}"
+
 class MOD_AST_NODE:
     def __init__(self):
         self.type = "MOD_AST_NODE"
