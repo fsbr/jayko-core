@@ -15,8 +15,10 @@ Anything could change in this repository at any time.
 
 ## Goals of the Project: 
 Over time, I want `jayko` to become useful to me as a tool for serious software development. To achieve this there are many things that still need to be done.  
-- Implement dynamic array for generic data types
-- Runtime checks for dynamic array
+- Implement dynamic array for generic data types **(25-AUG-2025)**
+- Runtime checks for dynamic array 
+- Variable Scope
+- Type Checking
 - Functions  **(31-AUG-2025)**
 - Read files from `stdin` **(1-SEP-2025)**.
 - HashMap implementation for generic data types.
@@ -94,6 +96,7 @@ let source_code: str = read_file("source_code.c");
 
 
 ## Further  Reading
-
+[Crafting Interpreters](https://craftinginterpreters.com/contents.html)
+Definitely a good book from an implementation standpoint.
 
 
