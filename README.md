@@ -15,6 +15,7 @@ Anything could change in this repository at any time.
 
 ## Goals of the Project: 
 Over time, I want `jayko` to become useful to me as a tool for serious software development. To achieve this there are many things that still need to be done.  
+- Fix the printing AST node so it works in a general way
 - Implement dynamic array for generic data types **(25-AUG-2025)**
 - Runtime checks for dynamic array 
 - Variable Scope
